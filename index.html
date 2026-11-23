@@ -539,6 +539,19 @@
             padding-bottom: 12px;
             font-size: 0.85rem;
             color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-mini-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
         }
 
         .sync-mini-bar {
@@ -548,7 +561,6 @@
             gap: 8px;
             color: var(--muted);
             font-size: 0.78rem;
-            margin-top: 10px;
             padding: 4px 10px;
             border-radius: 999px;
             background: rgba(78, 42, 30, 0.04);
@@ -602,7 +614,7 @@
         }
 
 
-        .login-card { max-width: 430px; margin: 34px auto; text-align: center; }
+        .login-card { max-width: 430px; margin: 16px auto 24px auto; text-align: center; }
         .google-login-btn { display:flex; align-items:center; justify-content:center; gap:12px; background:#fff; color:#333; border:1px solid #dadce0; border-radius:8px; padding:12px 16px; width:100%; font-weight:600; cursor:pointer; }
         .google-login-btn:hover { background:#f8f9fa; }
         .google-mark { font-size:1.2rem; font-weight:800; color:#4285f4; }
@@ -634,7 +646,6 @@
         <p id="login_status" class="login-user">Você pode continuar no modo local enquanto configura o login.</p>
         <div class="login-actions">
             <button type="button" class="btn-outline" onclick="continuarSemLogin()">Continuar sem entrar</button>
-            <button type="button" class="btn-outline hidden" id="logout_btn" onclick="sairDaConta()">Sair da conta</button>
         </div>
     </section>
 
@@ -1128,18 +1139,27 @@
         </div>
     </div>
 
-    <!-- Rodapé com ações de manutenção e mini-barra de sincronização -->
+    <!-- Rodapé com ações de manutenção, conta conectada e mini-barra de sincronização -->
     <div class="footer-bar">
         <div>Todas as respostas, receitas (PDF ou Link), gastos invisíveis, listas e vendas são salvos automaticamente.</div>
         <div>
             <button type="button" class="btn-outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="restaurarPadroes()">Restaurar valores padrão de fábrica</button>
         </div>
-        <div id="cloud_mini_status_bar" class="sync-mini-bar hidden">
-            <span class="sync-mini-status">
-                <span id="sync_mini_dot" class="sync-dot"></span>
-                <span id="sync_mini_text">Sincronizado</span>
-            </span>
-            <button type="button" class="sync-mini-link" onclick="reabrirConfigNuvem()">Alterar</button>
+        <div class="footer-mini-row">
+            <div id="account_mini_bar" class="sync-mini-bar hidden">
+                <span class="sync-mini-status">
+                    <span class="sync-dot"></span>
+                    <span id="account_mini_text">Conta Google</span>
+                </span>
+                <button type="button" class="sync-mini-link" onclick="sairDaConta()">Sair</button>
+            </div>
+            <div id="cloud_mini_status_bar" class="sync-mini-bar hidden">
+                <span class="sync-mini-status">
+                    <span id="sync_mini_dot" class="sync-dot"></span>
+                    <span id="sync_mini_text">Sincronizado</span>
+                </span>
+                <button type="button" class="sync-mini-link" onclick="reabrirConfigNuvem()">Alterar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1162,8 +1182,6 @@
 <script>
 
     // LOGIN GOOGLE (Firebase Authentication)
-    // Preencha este objeto com as credenciais Web do seu projeto Firebase.
-    // No Firebase Console: Authentication > Sign-in method > Google (ativar).
     const FIREBASE_AUTH_CONFIG = {
         apiKey: "AIzaSyACmfuLcs2hXVK-VB_0OU5fGKMdRmhvzVw",
         authDomain: "gestao-de-brownie.firebaseapp.com",
@@ -1208,14 +1226,18 @@
             const statusInicial = document.getElementById('login_status');
             if (statusInicial) statusInicial.textContent = 'Firebase conectado. Você já pode entrar com sua conta Google.';
             firebaseAuth.onAuthStateChanged(user => {
+                const panel = document.getElementById('login_panel');
                 const status = document.getElementById('login_status');
-                const logout = document.getElementById('logout_btn');
+                const accountBar = document.getElementById('account_mini_bar');
+                const accountText = document.getElementById('account_mini_text');
                 if (user) {
-                    if (status) status.textContent = 'Conectado como ' + (user.email || user.displayName || 'conta Google');
-                    if (logout) logout.classList.remove('hidden');
+                    if (panel) panel.classList.add('hidden');
+                    if (accountText) accountText.textContent = user.email || user.displayName || 'Conta Google';
+                    if (accountBar) accountBar.classList.remove('hidden');
                 } else {
+                    if (panel) panel.classList.remove('hidden');
+                    if (accountBar) accountBar.classList.add('hidden');
                     if (status) status.textContent = 'Nenhuma conta conectada.';
-                    if (logout) logout.classList.add('hidden');
                 }
             });
         } catch (e) {
@@ -1233,6 +1255,8 @@
         try {
             const provider = new firebase.auth.GoogleAuthProvider();
             await firebaseAuth.signInWithPopup(provider);
+            const panel = document.getElementById('login_panel');
+            if (panel) panel.classList.add('hidden');
             mostrarToast('Login Google realizado com sucesso!');
         } catch (e) {
             console.error(e);
@@ -1253,7 +1277,10 @@
     }
 
     async function sairDaConta() {
-        if (firebaseAuth) await firebaseAuth.signOut();
+        if (firebaseAuth) {
+            await firebaseAuth.signOut();
+            mostrarToast('Você saiu da conta Google.');
+        }
     }
 
     function continuarSemLogin() {
@@ -1320,7 +1347,7 @@
     };
     let contadorAtual = { P: 0, M: 0 };
     let historicoVendas = [];
-    let abaAtivaAtual = 'tab-lucro'; // A página inicial é sempre a primeira aba.
+    let abaAtivaAtual = 'tab-lucro';
     let precoVendaManual = false;
     let investimentoManual = false;
 
@@ -1492,7 +1519,7 @@
             abaAtivaAtual,
             precoVendaManual,
             investimentoManual,
-            cloudConfig: obterConfigNuvem() // replicada no payload para aparelhos que já conhecem o endpoint.
+            cloudConfig: obterConfigNuvem()
         };
     }
 
@@ -1528,7 +1555,7 @@
         localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(data));
         atualizarVisibilidadePainelNuvem();
         abaAtivaAtual = 'tab-lucro';
-    switchTab('tab-lucro', document.getElementById('btn-tab-lucro'), false);
+        switchTab('tab-lucro', document.getElementById('btn-tab-lucro'), false);
         calcularGastosInvisiveis(false);
         calcularProporcao(false);
         renderListaCompras(!investimentoManual);
