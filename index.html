@@ -613,13 +613,75 @@
             margin-left: 6px;
         }
 
+        .login-card {
+            max-width: 430px;
+            margin: 16px auto 24px auto;
+            text-align: center;
+            position: relative;
+        }
 
-        .login-card { max-width: 430px; margin: 16px auto 24px auto; text-align: center; }
-        .google-login-btn { display:flex; align-items:center; justify-content:center; gap:12px; background:#fff; color:#333; border:1px solid #dadce0; border-radius:8px; padding:12px 16px; width:100%; font-weight:600; cursor:pointer; }
-        .google-login-btn:hover { background:#f8f9fa; }
-        .google-mark { font-size:1.2rem; font-weight:800; color:#4285f4; }
-        .login-user { font-size:.88rem; color:var(--muted); margin-top:8px; }
-        .login-actions { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .login-close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--muted);
+            font-size: 1.2rem;
+            font-weight: 700;
+            line-height: 1;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .login-close-btn:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .google-login-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            background: #fff;
+            color: #333;
+            border: 1px solid #dadce0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            width: 100%;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .google-login-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .google-mark {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #4285f4;
+        }
+
+        .login-user {
+            font-size: .88rem;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        .login-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
 
         @media (max-width: 600px) {
             body {
@@ -638,6 +700,7 @@
 <div class="container">
 
     <section id="login_panel" class="card login-card">
+        <button type="button" class="login-close-btn" title="Fechar" aria-label="Fechar painel de login" onclick="fecharPainelLogin()">✕</button>
         <h2>🔐 Entrar no Gestão de Brownies</h2>
         <p class="helper-note">Entre com sua conta Google para identificar seu acesso. Ative o provedor Google em Authentication → Método de login no Firebase Console.</p>
         <button type="button" class="google-login-btn" onclick="entrarComGoogle()">
@@ -645,7 +708,7 @@
         </button>
         <p id="login_status" class="login-user">Você pode continuar no modo local enquanto configura o login.</p>
         <div class="login-actions">
-            <button type="button" class="btn-outline" onclick="continuarSemLogin()">Continuar sem entrar</button>
+            <button type="button" class="btn-outline" onclick="fecharPainelLogin()">Continuar sem entrar</button>
         </div>
     </section>
 
@@ -1194,12 +1257,38 @@
     };
     let firebaseAuth = null;
     let firebaseAuthDisponivel = false;
+    const STORAGE_KEY_LOGIN_DISMISSED = 'brownie_login_dismissed_v1';
 
     function firebaseConfigPreenchida() {
         return Boolean(FIREBASE_AUTH_CONFIG.apiKey &&
                        FIREBASE_AUTH_CONFIG.authDomain &&
                        FIREBASE_AUTH_CONFIG.projectId &&
                        FIREBASE_AUTH_CONFIG.appId);
+    }
+
+    function aplicarEstadoVisualConta(user) {
+        const panel = document.getElementById('login_panel');
+        const status = document.getElementById('login_status');
+        const accountBar = document.getElementById('account_mini_bar');
+        const accountText = document.getElementById('account_mini_text');
+        const dispensado = sessionStorage.getItem(STORAGE_KEY_LOGIN_DISMISSED) === '1';
+
+        if (user) {
+            sessionStorage.removeItem(STORAGE_KEY_LOGIN_DISMISSED);
+            if (panel) panel.classList.add('hidden');
+            if (accountText) accountText.textContent = user.email || user.displayName || 'Conta Google';
+            if (accountBar) accountBar.classList.remove('hidden');
+        } else {
+            if (accountBar) accountBar.classList.add('hidden');
+            if (panel) {
+                if (dispensado) {
+                    panel.classList.add('hidden');
+                } else {
+                    panel.classList.remove('hidden');
+                }
+            }
+            if (status) status.textContent = 'Nenhuma conta conectada.';
+        }
     }
 
     async function prepararLoginGoogle() {
@@ -1223,22 +1312,23 @@
             firebaseAuth = firebase.auth();
             await firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
             firebaseAuthDisponivel = true;
+
+            // Captura retorno caso tenha usado signInWithRedirect
+            try {
+                const redirectResult = await firebaseAuth.getRedirectResult();
+                if (redirectResult && redirectResult.user) {
+                    aplicarEstadoVisualConta(redirectResult.user);
+                    mostrarToast('Login Google realizado com sucesso!');
+                }
+            } catch (redirectErr) {
+                console.warn('Retorno de redirecionamento:', redirectErr);
+            }
+
             const statusInicial = document.getElementById('login_status');
             if (statusInicial) statusInicial.textContent = 'Firebase conectado. Você já pode entrar com sua conta Google.';
+
             firebaseAuth.onAuthStateChanged(user => {
-                const panel = document.getElementById('login_panel');
-                const status = document.getElementById('login_status');
-                const accountBar = document.getElementById('account_mini_bar');
-                const accountText = document.getElementById('account_mini_text');
-                if (user) {
-                    if (panel) panel.classList.add('hidden');
-                    if (accountText) accountText.textContent = user.email || user.displayName || 'Conta Google';
-                    if (accountBar) accountBar.classList.remove('hidden');
-                } else {
-                    if (panel) panel.classList.remove('hidden');
-                    if (accountBar) accountBar.classList.add('hidden');
-                    if (status) status.textContent = 'Nenhuma conta conectada.';
-                }
+                aplicarEstadoVisualConta(user);
             });
         } catch (e) {
             console.error('Falha ao preparar autenticação Google:', e);
@@ -1252,15 +1342,29 @@
             mostrarToast('Configure as credenciais Web do Firebase no código para habilitar o login Google.', true);
             return;
         }
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const isStandaloneOrMobile = window.matchMedia('(display-mode: standalone)').matches ||
+            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
         try {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            await firebaseAuth.signInWithPopup(provider);
-            const panel = document.getElementById('login_panel');
-            if (panel) panel.classList.add('hidden');
+            if (isStandaloneOrMobile) {
+                await firebaseAuth.signInWithRedirect(provider);
+                return;
+            }
+            const cred = await firebaseAuth.signInWithPopup(provider);
+            aplicarEstadoVisualConta(cred && cred.user ? cred.user : firebaseAuth.currentUser);
             mostrarToast('Login Google realizado com sucesso!');
         } catch (e) {
             console.error(e);
             const codigo = e && e.code ? e.code : 'erro-desconhecido';
+            if (codigo === 'auth/popup-blocked' || codigo === 'auth/popup-closed-by-user' || codigo === 'auth/cancelled-popup-request') {
+                try {
+                    await firebaseAuth.signInWithRedirect(provider);
+                    return;
+                } catch (redirErr) {
+                    console.error(redirErr);
+                }
+            }
             const detalhe = e && e.message ? e.message : 'Sem detalhes adicionais.';
             const status = document.getElementById('login_status');
             let orientacao = '';
@@ -1268,8 +1372,6 @@
                 orientacao = ' Adicione o domínio deste site em Firebase → Authentication → Configurações → Domínios autorizados. Não funciona abrindo o HTML diretamente como arquivo local (file://).';
             } else if (codigo === 'auth/operation-not-allowed') {
                 orientacao = ' Ative o provedor Google em Firebase → Authentication → Método de login.';
-            } else if (codigo === 'auth/popup-blocked') {
-                orientacao = ' Permita pop-ups para este site e tente novamente.';
             }
             if (status) status.textContent = 'Erro no login (' + codigo + '): ' + detalhe + orientacao;
             mostrarToast('Falha no login: ' + codigo, true);
@@ -1277,15 +1379,22 @@
     }
 
     async function sairDaConta() {
+        sessionStorage.removeItem(STORAGE_KEY_LOGIN_DISMISSED);
         if (firebaseAuth) {
             await firebaseAuth.signOut();
+            aplicarEstadoVisualConta(null);
             mostrarToast('Você saiu da conta Google.');
         }
     }
 
-    function continuarSemLogin() {
+    function fecharPainelLogin() {
+        sessionStorage.setItem(STORAGE_KEY_LOGIN_DISMISSED, '1');
         const panel = document.getElementById('login_panel');
         if (panel) panel.classList.add('hidden');
+    }
+
+    function continuarSemLogin() {
+        fecharPainelLogin();
     }
 
 
