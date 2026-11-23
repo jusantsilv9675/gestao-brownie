@@ -724,7 +724,7 @@
     <header>
         <h1>🍫 Gestão de Brownies Caseiros</h1>
         <p>Prévia interativa com cálculo de receita, gastos invisíveis, metas e vendas</p>
-        <div id="save_status_badge" class="save-badge">✓ Salvo localmente (configure a nuvem abaixo para sincronizar entre aparelhos)</div>
+        <div id="save_status_badge" class="save-badge hidden"></div>
     </header>
 
     <!-- Aba / Painel de Conexão com Conta Google (visível enquanto desconectado; oculto apenas após login) -->
@@ -1268,7 +1268,6 @@
 </div>
 
 <script>
-
     // LOGIN GOOGLE (Firebase Authentication)
     const FIREBASE_AUTH_CONFIG = {
         apiKey: "AIzaSyACmfuLcs2hXVK-VB_0OU5fGKMdRmhvzVw",
@@ -1329,7 +1328,6 @@
             await firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
             firebaseAuthDisponivel = true;
 
-            // Captura retorno caso tenha usado signInWithRedirect
             try {
                 const redirectResult = await firebaseAuth.getRedirectResult();
                 if (redirectResult && redirectResult.user) {
@@ -1340,26 +1338,45 @@
                 console.warn('Retorno de redirecionamento:', redirectErr);
             }
 
+            const ambienteSuportaAuth =
+                (window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
+                !window.location.hostname.endsWith('.usercontent.goog');
+
             const statusInicial = document.getElementById('login_status');
             if (statusInicial && !firebaseAuth.currentUser) {
-                statusInicial.textContent = 'Pronto para conectar com sua conta Google.';
+                statusInicial.textContent = ambienteSuportaAuth
+                    ? 'Pronto para conectar com sua conta Google.'
+                    : 'Login Google indisponível nesta prévia isolada. Abra o site publicado em HTTPS para conectar.';
             }
 
             firebaseAuth.onAuthStateChanged(user => {
                 aplicarEstadoVisualConta(user);
             });
         } catch (e) {
-            console.error('Falha ao preparar autenticação Google:', e);
+            console.warn('Autenticação Google não inicializada neste ambiente:', e);
             const status = document.getElementById('login_status');
-            if (status) status.textContent = 'Não foi possível iniciar o login. Verifique a configuração Firebase e a conexão.';
+            if (status) status.textContent = 'Login Google indisponível neste ambiente de prévia. Use a versão publicada em HTTPS.';
         }
     }
 
     async function entrarComGoogle() {
+        const protocolValido = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+        const isSandboxPreview = window.location.protocol === 'blob:' ||
+            window.location.hostname.endsWith('.usercontent.goog');
+
+        if (!protocolValido || isSandboxPreview) {
+            const msg = 'O login Google exige um domínio http/https fora de prévia em sandbox/blob. Abra o app publicado em HTTPS para entrar.';
+            const status = document.getElementById('login_status');
+            if (status) status.textContent = msg;
+            mostrarToast(msg, true);
+            return;
+        }
+
         if (!firebaseAuthDisponivel || !firebaseAuth) {
             mostrarToast('Configure as credenciais Web do Firebase no código para habilitar o login Google.', true);
             return;
         }
+
         const provider = new firebase.auth.GoogleAuthProvider();
         const isStandaloneOrMobile = window.matchMedia('(display-mode: standalone)').matches ||
             /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1373,14 +1390,20 @@
             aplicarEstadoVisualConta(cred && cred.user ? cred.user : firebaseAuth.currentUser);
             mostrarToast('Login Google realizado com sucesso!');
         } catch (e) {
-            console.error(e);
             const codigo = e && e.code ? e.code : 'erro-desconhecido';
+            if (codigo === 'auth/operation-not-supported-in-this-environment') {
+                const msg = 'Este ambiente de prévia não suporta autenticação Google. Abra em um domínio HTTP/HTTPS padrão.';
+                const status = document.getElementById('login_status');
+                if (status) status.textContent = msg;
+                mostrarToast(msg, true);
+                return;
+            }
             if (codigo === 'auth/popup-blocked' || codigo === 'auth/popup-closed-by-user' || codigo === 'auth/cancelled-popup-request') {
                 try {
                     await firebaseAuth.signInWithRedirect(provider);
                     return;
                 } catch (redirErr) {
-                    console.error(redirErr);
+                    console.warn('Falha no redirecionamento de login:', redirErr);
                 }
             }
             const detalhe = e && e.message ? e.message : 'Sem detalhes adicionais.';
@@ -1404,7 +1427,6 @@
         }
     }
 
-
     // Protege textos inseridos pelo usuário quando são renderizados em HTML.
     function escaparHTML(valor) {
         return String(valor ?? '').replace(/[&<>\"']/g, caractere => ({
@@ -1423,6 +1445,9 @@
     const STORAGE_KEY_STATE = 'brownie_gestao_estado_v4';
     const STORAGE_KEY_COMPRAS = 'brownie_lista_compras_v1';
     const STORAGE_KEY_CLOUD = 'brownie_cloud_config_v1';
+    const STORAGE_KEY_FIRST_SYNC = 'brownie_primeira_sync_ok_v1';
+
+    let jaSincronizouNuvem = localStorage.getItem(STORAGE_KEY_FIRST_SYNC) === 'true';
 
     let estadoGlobal = {
         custoFinalP: 0,
@@ -1482,23 +1507,33 @@
         'venda_preco_p', 'venda_preco_m'
     ];
 
+    function atualizarVisibilidadeBadgeTopo() {
+        const badge = document.getElementById('save_status_badge');
+        if (badge) {
+            badge.classList.add('hidden');
+        }
+    }
+
+    function marcarPrimeiraSincronizacaoConcluida() {
+        jaSincronizouNuvem = true;
+        localStorage.setItem(STORAGE_KEY_FIRST_SYNC, 'true');
+        atualizarVisibilidadeBadgeTopo();
+    }
+
     let badgeTimer = null;
     function indicarSalvo() {
         const badge = document.getElementById('save_status_badge');
-        if (!badge) return;
         const cfg = obterConfigNuvem();
-        badge.textContent = cfg.url && cfg.room ? 'Salvando e enviando para nuvem...' : 'Salvando alterações...';
-        badge.classList.add('saving');
-        clearTimeout(badgeTimer);
         const miniText = document.getElementById('sync_mini_text');
         if (miniText && cfg.url && cfg.room) {
             miniText.textContent = 'Sincronizando...';
         }
-        badgeTimer = setTimeout(() => {
-            badge.textContent = cfg.url && cfg.room
-                ? '☁️ Tudo salvo e sincronizado em nuvem'
-                : '✓ Salvo localmente (configure a nuvem abaixo para sincronizar entre aparelhos)';
+        if (badge) {
+            badge.classList.add('hidden');
             badge.classList.remove('saving');
+        }
+        clearTimeout(badgeTimer);
+        badgeTimer = setTimeout(() => {
             if (miniText && cfg.url && cfg.room) {
                 miniText.textContent = 'Sincronizado';
             }
@@ -1553,6 +1588,7 @@
             card.classList.remove('hidden');
             if (miniBar) miniBar.classList.add('hidden');
         }
+        atualizarVisibilidadeBadgeTopo();
     }
 
     function reabrirConfigNuvem() {
@@ -1587,13 +1623,16 @@
         const hint = document.getElementById('cloud_sync_hint');
         const miniText = document.getElementById('sync_mini_text');
         const miniDot = document.getElementById('sync_mini_dot');
-        if (badge) badge.textContent = statusTexto;
+        if (badge) {
+            badge.classList.add('hidden');
+            atualizarVisibilidadeBadgeTopo();
+        }
         if (miniText) {
             if (conectado) {
                 miniText.textContent = 'Sincronizado';
                 if (miniDot) miniDot.classList.remove('offline');
             } else {
-                miniText.textContent = 'Salvo localmente';
+                miniText.textContent = 'Nuvem desconectada';
                 if (miniDot) miniDot.classList.add('offline');
             }
         }
@@ -1635,6 +1674,7 @@
             abaAtivaAtual,
             precoVendaManual,
             investimentoManual,
+            jaSincronizouNuvem,
             cloudConfig: obterConfigNuvem()
         };
     }
@@ -1667,6 +1707,9 @@
         if (data.cloudConfig && data.cloudConfig.url && data.cloudConfig.room) {
             localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify(data.cloudConfig));
         }
+        if (typeof data.jaSincronizouNuvem === 'boolean' && data.jaSincronizouNuvem) {
+            marcarPrimeiraSincronizacaoConcluida();
+        }
 
         localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(data));
         atualizarVisibilidadePainelNuvem();
@@ -1690,9 +1733,10 @@
                 body: JSON.stringify(payload)
             });
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            marcarPrimeiraSincronizacaoConcluida();
             atualizarStatusNuvemUI('☁️ Tudo salvo e sincronizado em nuvem', true);
         } catch (err) {
-            atualizarStatusNuvemUI('✓ Salvo localmente (sem conexão com a nuvem no momento)', false);
+            atualizarStatusNuvemUI('☁️ Aguardando conexão com a nuvem', false);
         }
     }
 
@@ -1711,6 +1755,7 @@
                     await enviarParaNuvem(montarPayloadAtual());
                     mostrarToast('Seus dados locais foram enviados para a nuvem!');
                 }
+                marcarPrimeiraSincronizacaoConcluida();
                 atualizarStatusNuvemUI('☁️ Tudo salvo e sincronizado em nuvem', true);
             } else if (forcarEnvioSeVazio) {
                 await enviarParaNuvem(montarPayloadAtual());
@@ -1778,6 +1823,10 @@
                 precoVendaManual = Boolean(data.precoVendaManual);
                 investimentoManual = Boolean(data.investimentoManual);
                 if (data.updatedAt) ultimoTimestampLocal = data.updatedAt;
+                if (typeof data.jaSincronizouNuvem === 'boolean' && data.jaSincronizouNuvem) {
+                    jaSincronizouNuvem = true;
+                    localStorage.setItem(STORAGE_KEY_FIRST_SYNC, 'true');
+                }
                 encontrouAlgo = true;
             }
         } catch (e) {
@@ -2027,7 +2076,6 @@
     function calcularGastosInvisiveis(salvar = false) {
         renderReceitaSalva();
 
-        // 1. Tempo gasto (bater massa + assar + preparo extra)
         const minBater = parseFloat(document.getElementById('inv_tempo_bater').value) || 0;
         const minAssar = parseFloat(document.getElementById('inv_tempo_assar').value) || 0;
         const minExtraMao = parseFloat(document.getElementById('inv_mao_minutos').value) || 0;
@@ -2038,7 +2086,6 @@
         const custoTempoBruto = maoValorHora * (tempoTotalMin / 60);
         const custoTempo = maoIncluir ? custoTempoBruto : 0;
 
-        // 2. Gás de cozinha proporcional ao botijão P13 (13 kg)
         const gasPreco = parseFloat(document.getElementById('inv_gas_preco').value) || 0;
         const gasMin = parseFloat(document.getElementById('inv_gas_minutos').value) || 0;
         const gasConsumoKgH = parseFloat(document.getElementById('inv_gas_consumo').value) || 0;
@@ -2046,14 +2093,12 @@
         const kgUsado = gasConsumoKgH * (gasMin / 60);
         const custoGas = kgUsado * precoKgGas;
 
-        // 3. Energia elétrica em kWh
         const luzTarifa = parseFloat(document.getElementById('inv_luz_tarifa').value) || 0;
         const luzWatts = parseFloat(document.getElementById('inv_luz_potencia').value) || 0;
         const luzMin = parseFloat(document.getElementById('inv_luz_minutos').value) || 0;
         const kwhUsado = (luzWatts / 1000) * (luzMin / 60);
         const custoLuz = kwhUsado * luzTarifa;
 
-        // 4. Outros gastos invisíveis extras por fornada
         const tbody = document.getElementById('tabela_invisiveis_extras_body');
         tbody.innerHTML = '';
         let totalExtras = 0;
@@ -2488,6 +2533,7 @@
                 localStorage.removeItem('brownie_contador_v1');
                 localStorage.removeItem('brownie_vendas_v2');
                 localStorage.removeItem(STORAGE_KEY_CLOUD);
+                localStorage.removeItem(STORAGE_KEY_FIRST_SYNC);
                 location.reload();
             }
         );
@@ -2632,11 +2678,10 @@
             });
         }
     })();
-    </script>
+</script>
    
-    <script>
-    
-        // Registra e verifica atualizações do Service Worker em contexto seguro (HTTPS/localhost).
+<script>
+    // Registra e verifica atualizações do Service Worker em contexto seguro (HTTPS/localhost).
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
             try {
@@ -2647,7 +2692,7 @@
             }
         });
     }
-    </script>
+</script>
 
 </body>
 </html>
