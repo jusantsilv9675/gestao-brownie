@@ -601,6 +601,14 @@
             margin-left: 6px;
         }
 
+
+        .login-card { max-width: 430px; margin: 34px auto; text-align: center; }
+        .google-login-btn { display:flex; align-items:center; justify-content:center; gap:12px; background:#fff; color:#333; border:1px solid #dadce0; border-radius:8px; padding:12px 16px; width:100%; font-weight:600; cursor:pointer; }
+        .google-login-btn:hover { background:#f8f9fa; }
+        .google-mark { font-size:1.2rem; font-weight:800; color:#4285f4; }
+        .login-user { font-size:.88rem; color:var(--muted); margin-top:8px; }
+        .login-actions { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+
         @media (max-width: 600px) {
             body {
                 padding: 12px;
@@ -616,6 +624,20 @@
 </head>
 <body>
 <div class="container">
+
+    <section id="login_panel" class="card login-card">
+        <h2>🔐 Entrar no Gestão de Brownies</h2>
+        <p class="helper-note">Entre com sua conta Google para identificar seu acesso. Ative o provedor Google em Authentication → Método de login no Firebase Console.</p>
+        <button type="button" class="google-login-btn" onclick="entrarComGoogle()">
+            <span class="google-mark">G</span> Continuar com Google
+        </button>
+        <p id="login_status" class="login-user">Você pode continuar no modo local enquanto configura o login.</p>
+        <div class="login-actions">
+            <button type="button" class="btn-outline" onclick="continuarSemLogin()">Continuar sem entrar</button>
+            <button type="button" class="btn-outline hidden" id="logout_btn" onclick="sairDaConta()">Sair da conta</button>
+        </div>
+    </section>
+
     <!-- Cabeçalho principal e indicador de salvamento/sincronização -->
     <header>
         <h1>🍫 Gestão de Brownies Caseiros</h1>
@@ -629,7 +651,7 @@
             <div>
                 <strong style="color: var(--primary); font-size: 0.96rem;">☁️ Sincronização Automática Entre Dispositivos</strong>
                 <div class="helper-note" id="cloud_sync_hint" style="margin-top: 2px;">
-                    Cole a URL do seu <strong>Firebase Realtime Database</strong> (ex: <code>https://seu-projeto.firebaseio.com</code>) e um código secreto. Depois disso, basta abrir este mesmo arquivo HTML no celular ou PC que tudo sincroniza sozinho!
+                    Configure uma vez a URL do <strong>Firebase Realtime Database</strong> e o identificador da sala. A configuração fica salva neste navegador e é incluída nos dados sincronizados. Para um aparelho novo descobrir a nuvem no primeiro acesso, ele precisa receber o mesmo endereço de conexão por configuração inicial ou por uma versão publicada do app já configurada.
                 </div>
             </div>
             <button type="button" class="btn-outline" style="margin-top: 0; padding: 7px 12px; font-size: 0.84rem;" onclick="toggleCloudConfig()">⚙️ Configurar Nuvem</button>
@@ -650,18 +672,18 @@
                 </div>
             </div>
             <div class="helper-note" style="margin-top: 8px;">
-                💡 <strong>Configuração:</strong> crie um Realtime Database no Firebase e informe a URL. Configure as <strong>regras de segurança</strong> antes de inserir dados reais. O identificador da sala apenas separa os dados; <strong>não é uma senha nem substitui autenticação</strong>. Evite regras públicas ou modo teste em produção.
+                💡 <strong>Configuração:</strong> crie um Realtime Database no Firebase e informe a URL. Configure as <strong>regras de segurança</strong> antes de inserir dados reais. O identificador da sala apenas separa os dados; <strong>não é uma senha nem substitui autenticação</strong>. Para que instalações novas descubram a nuvem automaticamente, publique o app com o mesmo endpoint pré-configurado. Evite regras públicas ou modo teste em produção.
             </div>
         </div>
     </div>
 
     <!-- Navegação das 5 abas -->
     <div class="tabs">
-        <button type="button" id="btn-tab-lucro" class="tab-btn active" onclick="switchTab('tab-lucro', this)">1. Custos & Margem</button>
-        <button type="button" id="btn-tab-receita" class="tab-btn" onclick="switchTab('tab-receita', this)">2. Receita & Invisíveis 🔥</button>
-        <button type="button" id="btn-tab-insumos" class="tab-btn" onclick="switchTab('tab-insumos', this)">3. Insumos & Compras</button>
-        <button type="button" id="btn-tab-metas" class="tab-btn" onclick="switchTab('tab-metas', this)">4. Metas & Comparador</button>
-        <button type="button" id="btn-tab-vendas" class="tab-btn" onclick="switchTab('tab-vendas', this)">5. Controle de Vendas 💰</button>
+        <button type="button" id="btn-tab-lucro" class="tab-btn active" onclick="switchTab('tab-lucro', this)">1. 💵 Custos & Margem</button>
+        <button type="button" id="btn-tab-receita" class="tab-btn" onclick="switchTab('tab-receita', this)">2. 🍫 Receita & Invisíveis</button>
+        <button type="button" id="btn-tab-insumos" class="tab-btn" onclick="switchTab('tab-insumos', this)">3. 🛒 Insumos & Compras</button>
+        <button type="button" id="btn-tab-metas" class="tab-btn" onclick="switchTab('tab-metas', this)">4. 🎯 Metas & Comparador</button>
+        <button type="button" id="btn-tab-vendas" class="tab-btn" onclick="switchTab('tab-vendas', this)">5. 💰 Controle de Vendas</button>
     </div>
 
     <!-- ABA 1: CUSTOS & MARGEM -->
@@ -1138,6 +1160,108 @@
 </div>
 
 <script>
+
+    // LOGIN GOOGLE (Firebase Authentication)
+    // Preencha este objeto com as credenciais Web do seu projeto Firebase.
+    // No Firebase Console: Authentication > Sign-in method > Google (ativar).
+    const FIREBASE_AUTH_CONFIG = {
+        apiKey: "AIzaSyACmfuLcs2hXVK-VB_0OU5fGKMdRmhvzVw",
+        authDomain: "gestao-de-brownie.firebaseapp.com",
+        databaseURL: "https://gestao-de-brownie-default-rtdb.firebaseio.com",
+        projectId: "gestao-de-brownie",
+        storageBucket: "gestao-de-brownie.firebasestorage.app",
+        messagingSenderId: "577319848649",
+        appId: "1:577319848649:web:1ef05a985ff63e4928db18",
+        measurementId: "G-W4SC52KQS1"
+    };
+    let firebaseAuth = null;
+    let firebaseAuthDisponivel = false;
+
+    function firebaseConfigPreenchida() {
+        return Boolean(FIREBASE_AUTH_CONFIG.apiKey &&
+                       FIREBASE_AUTH_CONFIG.authDomain &&
+                       FIREBASE_AUTH_CONFIG.projectId &&
+                       FIREBASE_AUTH_CONFIG.appId);
+    }
+
+    async function prepararLoginGoogle() {
+        if (!firebaseConfigPreenchida()) return;
+        try {
+            if (!window.firebase) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js';
+                    script.onload = resolve; script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
+                    script.onload = resolve; script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_AUTH_CONFIG);
+            firebaseAuth = firebase.auth();
+            await firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            firebaseAuthDisponivel = true;
+            const statusInicial = document.getElementById('login_status');
+            if (statusInicial) statusInicial.textContent = 'Firebase conectado. Você já pode entrar com sua conta Google.';
+            firebaseAuth.onAuthStateChanged(user => {
+                const status = document.getElementById('login_status');
+                const logout = document.getElementById('logout_btn');
+                if (user) {
+                    if (status) status.textContent = 'Conectado como ' + (user.email || user.displayName || 'conta Google');
+                    if (logout) logout.classList.remove('hidden');
+                } else {
+                    if (status) status.textContent = 'Nenhuma conta conectada.';
+                    if (logout) logout.classList.add('hidden');
+                }
+            });
+        } catch (e) {
+            console.error('Falha ao preparar autenticação Google:', e);
+            const status = document.getElementById('login_status');
+            if (status) status.textContent = 'Não foi possível iniciar o login. Verifique a configuração Firebase e a conexão.';
+        }
+    }
+
+    async function entrarComGoogle() {
+        if (!firebaseAuthDisponivel || !firebaseAuth) {
+            mostrarToast('Configure as credenciais Web do Firebase no código para habilitar o login Google.', true);
+            return;
+        }
+        try {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            await firebaseAuth.signInWithPopup(provider);
+            mostrarToast('Login Google realizado com sucesso!');
+        } catch (e) {
+            console.error(e);
+            const codigo = e && e.code ? e.code : 'erro-desconhecido';
+            const detalhe = e && e.message ? e.message : 'Sem detalhes adicionais.';
+            const status = document.getElementById('login_status');
+            let orientacao = '';
+            if (codigo === 'auth/unauthorized-domain') {
+                orientacao = ' Adicione o domínio deste site em Firebase → Authentication → Configurações → Domínios autorizados. Não funciona abrindo o HTML diretamente como arquivo local (file://).';
+            } else if (codigo === 'auth/operation-not-allowed') {
+                orientacao = ' Ative o provedor Google em Firebase → Authentication → Método de login.';
+            } else if (codigo === 'auth/popup-blocked') {
+                orientacao = ' Permita pop-ups para este site e tente novamente.';
+            }
+            if (status) status.textContent = 'Erro no login (' + codigo + '): ' + detalhe + orientacao;
+            mostrarToast('Falha no login: ' + codigo, true);
+        }
+    }
+
+    async function sairDaConta() {
+        if (firebaseAuth) await firebaseAuth.signOut();
+    }
+
+    function continuarSemLogin() {
+        const panel = document.getElementById('login_panel');
+        if (panel) panel.classList.add('hidden');
+    }
+
+
     // Protege textos inseridos pelo usuário quando são renderizados em HTML.
     function escaparHTML(valor) {
         return String(valor ?? '').replace(/[&<>\"']/g, caractere => ({
@@ -1196,7 +1320,7 @@
     };
     let contadorAtual = { P: 0, M: 0 };
     let historicoVendas = [];
-    let abaAtivaAtual = 'tab-lucro';
+    let abaAtivaAtual = 'tab-lucro'; // A página inicial é sempre a primeira aba.
     let precoVendaManual = false;
     let investimentoManual = false;
 
@@ -1278,7 +1402,8 @@
         const card = document.getElementById('cloud_panel_card');
         const miniBar = document.getElementById('cloud_mini_status_bar');
         if (!card) return;
-        if (cfg.url && cfg.room) {
+        const configuracaoConcluida = Boolean(cfg.url && cfg.room);
+        if (configuracaoConcluida) {
             card.classList.add('hidden');
             if (miniBar) miniBar.classList.remove('hidden');
         } else {
@@ -1367,7 +1492,7 @@
             abaAtivaAtual,
             precoVendaManual,
             investimentoManual,
-            cloudConfig: obterConfigNuvem()
+            cloudConfig: obterConfigNuvem() // replicada no payload para aparelhos que já conhecem o endpoint.
         };
     }
 
@@ -1392,7 +1517,7 @@
         }
         if (data.contadorAtual) contadorAtual = data.contadorAtual;
         if (Array.isArray(data.historicoVendas)) historicoVendas = data.historicoVendas;
-        if (data.abaAtivaAtual) abaAtivaAtual = data.abaAtivaAtual;
+        abaAtivaAtual = 'tab-lucro';
         precoVendaManual = Boolean(data.precoVendaManual);
         investimentoManual = Boolean(data.investimentoManual);
         if (data.updatedAt) ultimoTimestampLocal = data.updatedAt;
@@ -1402,7 +1527,8 @@
 
         localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(data));
         atualizarVisibilidadePainelNuvem();
-        switchTab(abaAtivaAtual, null, false);
+        abaAtivaAtual = 'tab-lucro';
+    switchTab('tab-lucro', document.getElementById('btn-tab-lucro'), false);
         calcularGastosInvisiveis(false);
         calcularProporcao(false);
         renderListaCompras(!investimentoManual);
@@ -1505,7 +1631,7 @@
                 }
                 if (data.contadorAtual) contadorAtual = data.contadorAtual;
                 if (Array.isArray(data.historicoVendas)) historicoVendas = data.historicoVendas;
-                if (data.abaAtivaAtual) abaAtivaAtual = data.abaAtivaAtual;
+                abaAtivaAtual = 'tab-lucro';
                 precoVendaManual = Boolean(data.precoVendaManual);
                 investimentoManual = Boolean(data.investimentoManual);
                 if (data.updatedAt) ultimoTimestampLocal = data.updatedAt;
@@ -2327,6 +2453,8 @@
         calcularMetas(false);
         renderVendas();
     }
+
+    prepararLoginGoogle();
 
     // Inicialização restaurando dados salvos anteriormente
     const tinhaEstadoSalvo = carregarEstadoCompleto();
