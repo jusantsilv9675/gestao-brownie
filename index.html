@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
-    <title>Gestão de Brownies Caseiros - v8</title>
+    <title>Gestão de Brownies Caseiros</title>
     
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#4e2a1e">
@@ -34,15 +34,320 @@
 
         * {
             box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: Verdana, 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text);
             margin: 0;
-            padding: 20px;
+            padding: 0;
             line-height: 1.5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* =========================================================
+           1. TELA DE CARREGAMENTO MINIMALISTA E FOFA (#fdf8f5)
+           ========================================================= */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background-color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+
+        #splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-brownie-wrap {
+            width: min(64vw, 250px);
+            height: min(64vw, 250px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: floatCute 2.2s ease-in-out infinite;
+        }
+
+        .splash-brownie-wrap img,
+        .splash-brownie-wrap svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 16px 26px rgba(78, 42, 30, 0.16));
+        }
+
+        @keyframes floatCute {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-8px) scale(1.035);
+            }
+        }
+
+        /* =========================================================
+           2. PÁGINA DEDICADA DE LOGIN & CRIAR CONTA
+           ========================================================= */
+        #auth-page {
+            min-height: 100vh;
+            background-color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 28px rgba(78, 42, 30, 0.08);
+        }
+
+        .auth-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .auth-logo-mini {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-logo-mini img,
+        .auth-logo-mini svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 6px 12px rgba(78, 42, 30, 0.15));
+        }
+
+        .auth-header h1 {
+            margin: 0 0 4px 0;
+            font-size: 1.32rem;
+            color: var(--primary);
+        }
+
+        .auth-header p {
+            margin: 0;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .auth-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            background: var(--bg);
+            padding: 5px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 18px;
+        }
+
+        .auth-tab-btn {
+            padding: 9px 10px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .auth-tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 6px rgba(78, 42, 30, 0.2);
+        }
+
+        .auth-field {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 13px;
+        }
+
+        .auth-field label {
+            font-size: 0.83rem;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 5px;
+        }
+
+        .auth-field input {
+            background: #ffffff;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.94rem;
+            color: var(--text);
+            width: 100%;
+        }
+
+        .auth-field input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(78, 42, 30, 0.12);
+        }
+
+        .password-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-wrap input {
+            padding-right: 42px;
+        }
+
+        .toggle-pass-btn {
+            position: absolute;
+            right: 10px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+        }
+
+        .auth-aux-row {
+            display: flex;
+            justify-content: flex-end;
+            margin: -4px 0 14px 0;
+        }
+
+        .auth-text-link {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+            padding: 0;
+        }
+
+        .auth-submit-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 11px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.08s;
+        }
+
+        .auth-submit-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .auth-submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        .auth-switch-hint {
+            text-align: center;
+            margin-top: 12px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 16px 0;
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .google-auth-btn {
+            width: 100%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #ffffff;
+            color: var(--text);
+            border: 2px solid var(--border);
+            border-radius: 11px;
+            padding: 11px 16px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .google-auth-btn:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        .auth-feedback {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 9px;
+            font-size: 0.82rem;
+            line-height: 1.4;
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            color: #92400e;
+        }
+
+        .auth-feedback.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .auth-feedback.success {
+            background: var(--success-bg);
+            border-color: #a7f3d0;
+            color: var(--success-text);
+        }
+
+        .auth-preview-skip {
+            margin-top: 14px;
+            text-align: center;
+        }
+
+        /* =========================================================
+           3. PAINEL PRINCIPAL DO APP
+           ========================================================= */
+        #app-container {
+            padding: 20px;
         }
 
         .container {
@@ -63,18 +368,41 @@
 
         header h1 {
             margin: 0 0 6px 0;
-            font-size: 1.6rem;
+            font-size: 1.55rem;
             color: #ffffff;
         }
 
         header p {
             margin: 0;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             color: #ffffff;
             opacity: 0.92;
         }
 
-        /* Selo de status integrado à paleta principal */
+        .header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .header-pill-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .header-pill-btn:hover {
+            background: rgba(255, 255, 255, 0.26);
+        }
+
         .save-badge {
             display: inline-flex;
             align-items: center;
@@ -87,13 +415,6 @@
             font-size: 0.82rem;
             font-weight: 600;
             color: var(--primary);
-            transition: all 0.25s ease;
-        }
-
-        .save-badge.saving {
-            background: var(--info-bg);
-            border-color: var(--info-border);
-            color: var(--accent);
         }
 
         .tabs {
@@ -111,7 +432,7 @@
             background: #ffffff;
             color: var(--primary);
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.2s;
@@ -133,7 +454,7 @@
 
         .card h2 {
             margin-top: 0;
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             color: var(--primary);
             border-bottom: 2px solid var(--bg);
             padding-bottom: 8px;
@@ -157,7 +478,7 @@
         }
 
         label {
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
             margin-bottom: 5px;
             color: var(--muted);
@@ -168,13 +489,8 @@
             padding: 10px 12px;
             border: 1px solid var(--border);
             border-radius: 8px;
-            font-size: 0.98rem;
+            font-size: 0.95rem;
             color: var(--text);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 75px;
         }
 
         input:focus, select:focus, textarea:focus {
@@ -188,8 +504,8 @@
             color: #ffffff;
             border: none;
             padding: 12px 20px;
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 0.96rem;
+            font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
             margin-top: 14px;
@@ -227,13 +543,15 @@
             border: 2px solid var(--primary);
             color: var(--primary);
             padding: 10px 16px;
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
             width: auto;
             margin-top: 10px;
             transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
         }
 
         .btn-outline:hover {
@@ -253,7 +571,7 @@
             color: #92400e;
             padding: 6px 12px;
             border-radius: 999px;
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.15s;
@@ -312,11 +630,11 @@
         .price-card h3 {
             margin: 0 0 8px 0;
             color: var(--primary);
-            font-size: 1.02rem;
+            font-size: 1rem;
         }
 
         .price-highlight {
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             font-weight: 800;
             color: #047857;
         }
@@ -325,7 +643,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 14px;
-            font-size: 0.92rem;
+            font-size: 0.9rem;
             background: #ffffff;
         }
 
@@ -341,12 +659,8 @@
             color: var(--primary);
         }
 
-        .hidden {
-            display: none !important;
-        }
-
         .helper-note {
-            font-size: 0.84rem;
+            font-size: 0.82rem;
             color: var(--muted);
             margin-top: 4px;
         }
@@ -375,7 +689,7 @@
         }
 
         .counter-title {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             font-weight: 800;
             color: var(--primary);
             margin: 0 0 12px 0;
@@ -405,13 +719,13 @@
         }
 
         .counter-size {
-            font-size: 1.08rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text);
         }
 
         .counter-subprice {
-            font-size: 0.85rem;
+            font-size: 0.83rem;
             color: var(--muted);
         }
 
@@ -446,23 +760,15 @@
             color: var(--primary);
         }
 
-        .btn-minus:hover {
-            background: var(--bg);
-        }
-
         .btn-plus {
             background: var(--primary);
             color: #ffffff;
         }
 
-        .btn-plus:hover {
-            background: var(--primary-light);
-        }
-
         .counter-value {
             min-width: 44px;
             text-align: center;
-            font-size: 1.45rem;
+            font-size: 1.4rem;
             font-weight: 800;
             color: var(--primary);
         }
@@ -475,14 +781,15 @@
             color: #ffffff;
             padding: 12px 18px;
             border-radius: 10px;
-            font-size: 0.92rem;
+            font-size: 0.88rem;
             font-weight: 600;
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
-            z-index: 9999;
+            z-index: 100000;
             opacity: 0;
             transform: translateY(14px);
             pointer-events: none;
             transition: all 0.25s ease;
+            max-width: calc(100vw - 44px);
         }
 
         .toast.show {
@@ -518,13 +825,13 @@
         .modal-card h3 {
             margin: 0 0 8px 0;
             color: var(--primary);
-            font-size: 1.15rem;
+            font-size: 1.12rem;
         }
 
         .modal-card p {
             margin: 0 0 18px 0;
             color: var(--muted);
-            font-size: 0.95rem;
+            font-size: 0.92rem;
         }
 
         .modal-actions {
@@ -537,7 +844,7 @@
             text-align: center;
             margin-top: 24px;
             padding-bottom: 12px;
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: var(--muted);
             display: flex;
             flex-direction: column;
@@ -594,12 +901,7 @@
             text-decoration: underline;
             cursor: pointer;
             padding: 0 2px;
-            opacity: 0.8;
-        }
-
-        .sync-mini-link:hover {
-            color: var(--primary);
-            opacity: 1;
+            opacity: 0.85;
         }
 
         .badge-mode {
@@ -613,96 +915,8 @@
             margin-left: 6px;
         }
 
-        /* Painel / Aba de Conexão Google integrada ao design da página */
-        .login-banner {
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-left: 5px solid var(--primary);
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-        }
-
-        .login-banner-info {
-            flex: 1;
-            min-width: 240px;
-        }
-
-        .login-banner-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 1.02rem;
-            font-weight: 700;
-            color: var(--primary);
-            margin: 0 0 4px 0;
-        }
-
-        .login-status-pill {
-            display: inline-block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 999px;
-            background: var(--info-bg);
-            border: 1px solid var(--info-border);
-            color: #92400e;
-        }
-
-        .login-user {
-            font-size: 0.85rem;
-            color: var(--muted);
-            margin: 4px 0 0 0;
-        }
-
-        .google-login-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background: var(--primary);
-            color: #ffffff;
-            border: 2px solid var(--primary);
-            border-radius: 10px;
-            padding: 11px 18px;
-            font-size: 0.94rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s, border-color 0.2s, transform 0.08s;
-            white-space: nowrap;
-        }
-
-        .google-login-btn:hover {
-            background: var(--primary-light);
-            border-color: var(--primary-light);
-        }
-
-        .google-login-btn:active {
-            transform: scale(0.98);
-        }
-
-        .google-mark {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 22px;
-            height: 22px;
-            border-radius: 50%;
-            background: #ffffff;
-            color: var(--primary);
-            font-size: 0.88rem;
-            font-weight: 800;
-            line-height: 1;
-        }
-
         @media (max-width: 600px) {
-            body {
+            #app-container {
                 padding: 12px;
             }
             .card {
@@ -711,564 +925,675 @@
             .tab-btn {
                 min-width: 100%;
             }
-            .google-login-btn {
-                width: 100%;
-            }
         }
     </style>
 </head>
 <body>
-<div class="container">
 
-    <!-- Cabeçalho principal e indicador de salvamento/sincronização -->
-    <header>
-        <h1>🍫 Gestão de Brownies Caseiros</h1>
-        <p>Prévia interativa com cálculo de receita, gastos invisíveis, metas e vendas</p>
-        <div id="save_status_badge" class="save-badge hidden"></div>
-    </header>
-
-    <!-- Aba / Painel de Conexão com Conta Google (visível enquanto desconectado; oculto apenas após login) -->
-    <section id="login_panel" class="login-banner" aria-label="Conexão com Conta Google">
-        <div class="login-banner-info">
-            <div class="login-banner-title">
-                <span>🔐 Conta Google</span>
-                <span class="login-status-pill">Desconectado</span>
-            </div>
-            <p class="helper-note" style="margin: 0;">Conecte sua conta Google para identificar seu acesso e vincular suas configurações.</p>
-            <p id="login_status" class="login-user">Nenhuma conta conectada no momento.</p>
+    <!-- =========================================================
+         1. TELA DE CARREGAMENTO MINIMALISTA E FOFA (APENAS FUNDO + BROWNIE)
+         ========================================================= -->
+    <div id="splash-screen" aria-label="Carregando aplicativo">
+        <div class="splash-brownie-wrap">
+            <img src="icon-512.png" alt="Brownie" onerror="this.style.display='none'; document.getElementById('splash-fallback-svg').classList.remove('hidden');">
+            <svg id="splash-fallback-svg" class="hidden" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-label="Ícone de Brownie">
+                <rect x="20" y="24" width="160" height="152" rx="34" fill="#6b3826" stroke="#452115" stroke-width="5"/>
+                <rect x="23" y="24" width="154" height="118" rx="30" fill="#7d432e"/>
+                <path d="M23 128 Q52 142 82 128 T142 128 T177 128 L177 146 Q177 173 148 173 L52 173 Q23 173 23 146 Z" fill="#52281a"/>
+                <path d="M52 58 C36 58, 36 80, 62 78 C98 75, 134 48, 152 62 C168 74, 108 98, 66 108 C42 114, 48 134, 84 126 C122 118, 158 96, 164 114 C169 130, 126 144, 102 142" fill="none" stroke="#fff9f4" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M52 55 C38 55, 38 75, 62 73 C98 70, 134 45, 150 58" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+                <polygon points="44,36 37,48 51,48" fill="#3a1b10"/>
+                <polygon points="154,36 147,48 161,48" fill="#3a1b10"/>
+                <polygon points="82,48 75,60 89,60" fill="#3a1b10"/>
+                <polygon points="134,76 127,88 141,88" fill="#3a1b10"/>
+                <polygon points="68,94 61,106 75,106" fill="#3a1b10"/>
+                <polygon points="116,104 109,116 123,116" fill="#3a1b10"/>
+                <polygon points="46,128 39,140 53,140" fill="#3a1b10"/>
+                <polygon points="154,126 147,138 161,138" fill="#3a1b10"/>
+            </svg>
         </div>
-        <div>
-            <button type="button" class="google-login-btn" onclick="entrarComGoogle()">
-                <span class="google-mark">G</span> Conectar com Google
+    </div>
+
+    <!-- =========================================================
+         2. PÁGINA DEDICADA DE LOGIN & CRIAR CONTA
+         ========================================================= -->
+    <main id="auth-page" aria-label="Acesso ao sistema">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-logo-mini">
+                    <img src="icon-192.png" alt="Logo Brownie" onerror="this.style.display='none'; document.getElementById('auth-fallback-svg').classList.remove('hidden');">
+                    <svg id="auth-fallback-svg" class="hidden" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="20" y="24" width="160" height="152" rx="34" fill="#6b3826" stroke="#452115" stroke-width="5"/>
+                        <rect x="23" y="24" width="154" height="118" rx="30" fill="#7d432e"/>
+                        <path d="M52 58 C36 58, 36 80, 62 78 C98 75, 134 48, 152 62 C168 74, 108 98, 66 108 C42 114, 48 134, 84 126 C122 118, 158 96, 164 114 C169 130, 126 144, 102 142" fill="none" stroke="#fff9f4" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1>Gestão de Brownies</h1>
+                <p id="auth-subtitle">Entre na sua conta para acessar seus dados</p>
+            </div>
+
+            <!-- Abas: Entrar ou Criar Conta -->
+            <div class="auth-tabs" role="tablist">
+                <button type="button" id="tab-auth-login" class="auth-tab-btn active" role="tab" aria-selected="true" onclick="alternarModoAuth('login')">🔑 Entrar</button>
+                <button type="button" id="tab-auth-signup" class="auth-tab-btn" role="tab" aria-selected="false" onclick="alternarModoAuth('signup')">✨ Criar Conta</button>
+            </div>
+
+            <!-- Formulário de E-mail e Senha (Entrar / Criar Conta) -->
+            <form id="auth-email-form" onsubmit="enviarFormularioEmail(event)">
+                <div id="auth-name-group" class="auth-field hidden">
+                    <label for="auth_name">Seu nome</label>
+                    <input type="text" id="auth_name" autocomplete="name" placeholder="Ex: Júlia">
+                </div>
+
+                <div class="auth-field">
+                    <label for="auth_email">E-mail</label>
+                    <input type="email" id="auth_email" required autocomplete="email" placeholder="seuemail@exemplo.com">
+                </div>
+
+                <div class="auth-field">
+                    <label for="auth_password">Senha</label>
+                    <div class="password-wrap">
+                        <input type="password" id="auth_password" required minlength="6" autocomplete="current-password" placeholder="Mínimo 6 caracteres">
+                        <button type="button" class="toggle-pass-btn" aria-label="Mostrar ou ocultar senha" onclick="alternarVisibilidadeSenha('auth_password')">👁️</button>
+                    </div>
+                </div>
+
+                <div id="auth-confirm-group" class="auth-field hidden">
+                    <label for="auth_password_confirm">Confirmar senha</label>
+                    <div class="password-wrap">
+                        <input type="password" id="auth_password_confirm" minlength="6" autocomplete="new-password" placeholder="Repita a senha">
+                        <button type="button" class="toggle-pass-btn" aria-label="Mostrar ou ocultar confirmação de senha" onclick="alternarVisibilidadeSenha('auth_password_confirm')">👁️</button>
+                    </div>
+                </div>
+
+                <div id="auth-forgot-row" class="auth-aux-row">
+                    <button type="button" class="auth-text-link" onclick="recuperarSenha()">Esqueci minha senha</button>
+                </div>
+
+                <button type="submit" id="auth-submit-btn" class="auth-submit-btn">Entrar com E-mail</button>
+
+                <div class="auth-switch-hint" id="auth-switch-hint">
+                    Ainda não tem conta? <button type="button" class="auth-text-link" onclick="alternarModoAuth('signup')">Criar conta agora</button>
+                </div>
+            </form>
+
+            <div class="auth-divider">ou</div>
+
+            <!-- Botão Conta Google -->
+            <button type="button" class="google-auth-btn" onclick="entrarComGoogle()">
+                <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                </svg>
+                <span>Continuar com Google</span>
             </button>
-        </div>
-    </section>
 
-    <!-- Painel de Sincronização Automática em Nuvem (Firebase Realtime Database REST API) -->
-    <div id="cloud_panel_card" class="card" style="padding: 14px 18px; margin-bottom: 16px; background: #fffbeb; border-color: #fde68a;">
-        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
-            <div>
-                <strong style="color: var(--primary); font-size: 0.96rem;">☁️ Sincronização Automática Entre Dispositivos</strong>
-                <div class="helper-note" id="cloud_sync_hint" style="margin-top: 2px;">
-                    Configure uma vez a URL do <strong>Firebase Realtime Database</strong> e o identificador da sala. A configuração fica salva neste navegador e é incluída nos dados sincronizados. Para um aparelho novo descobrir a nuvem no primeiro acesso, ele precisa receber o mesmo endereço de conexão por configuração inicial ou por uma versão publicada do app já configurada.
-                </div>
-            </div>
-            <button type="button" class="btn-outline" style="margin-top: 0; padding: 7px 12px; font-size: 0.84rem;" onclick="toggleCloudConfig()">⚙️ Configurar Nuvem</button>
-        </div>
+            <div id="auth-feedback" class="auth-feedback hidden"></div>
 
-        <div id="cloud_config_box" class="hidden" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #fcd34d;">
-            <div class="grid-3">
-                <div class="form-group">
-                    <label>URL do Firebase Realtime Database</label>
-                    <input type="url" id="cloud_db_url" placeholder="https://meu-brownie-default-rtdb.firebaseio.com">
-                </div>
-                <div class="form-group">
-                    <label>Identificador da sala (use o mesmo nos aparelhos)</label>
-                    <input type="text" id="cloud_room_id" placeholder="Ex: julia-brownies-2026">
-                </div>
-                <div class="form-group" style="justify-content: flex-end;">
-                    <button type="button" class="btn" style="margin-top: 0; padding: 10px 14px; font-size: 0.9rem;" onclick="conectarNuvem()">Conectar & Sincronizar Agora</button>
-                </div>
-            </div>
-            <div class="helper-note" style="margin-top: 8px;">
-                💡 <strong>Configuração:</strong> crie um Realtime Database no Firebase e informe a URL. Configure as <strong>regras de segurança</strong> antes de inserir dados reais. O identificador da sala apenas separa os dados; <strong>não é uma senha nem substitui autenticação</strong>. Para que instalações novas descubram a nuvem automaticamente, publique o app com o mesmo endpoint pré-configurado. Evite regras públicas ou modo teste em produção.
+            <div class="auth-preview-skip">
+                <button type="button" class="auth-text-link" style="color: var(--muted); font-weight: 600;" onclick="entrarModoDemonstracao()">Testar painel sem login (modo prévia)</button>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Navegação das 5 abas -->
-    <div class="tabs">
-        <button type="button" id="btn-tab-lucro" class="tab-btn active" onclick="switchTab('tab-lucro', this)">1. 💵 Custos & Margem</button>
-        <button type="button" id="btn-tab-receita" class="tab-btn" onclick="switchTab('tab-receita', this)">2. 🍫 Receita & Invisíveis</button>
-        <button type="button" id="btn-tab-insumos" class="tab-btn" onclick="switchTab('tab-insumos', this)">3. 🛒 Insumos & Compras</button>
-        <button type="button" id="btn-tab-metas" class="tab-btn" onclick="switchTab('tab-metas', this)">4. 🎯 Metas & Comparador</button>
-        <button type="button" id="btn-tab-vendas" class="tab-btn" onclick="switchTab('tab-vendas', this)">5. 💰 Controle de Vendas</button>
-    </div>
+    <!-- =========================================================
+         3. PAINEL PRINCIPAL DO APP (LIBERADO APÓS LOGIN)
+         ========================================================= -->
+    <div id="app-container" class="hidden">
+        <div class="container">
 
-    <!-- ABA 1: CUSTOS & MARGEM -->
-    <div id="tab-lucro">
-        <div class="card">
-            <h2>1. Custo dos Ingredientes Usados na Receita</h2>
-            <p class="helper-note">Preencha os ingredientes da fornada aqui na Aba 1. Os <strong>Gastos Invisíveis</strong> (tempo, luz e gás) calculados na Aba 2 são somados automaticamente ao que já está aqui.</p>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Ovos usados na receita (R$)</label>
-                    <input type="number" id="c_ovos" step="0.01" value="3.00" oninput="aoEditarAba1()">
+            <!-- Cabeçalho principal -->
+            <header>
+                <h1>🍫 Gestão de Brownies Caseiros</h1>
+                <p id="header-user-greeting">Cálculo de receita, gastos invisíveis, metas e vendas</p>
+                <div class="header-actions">
+                    <button type="button" class="header-pill-btn" onclick="reverTelaCarregamento()">↻ Rever tela de abertura</button>
+                    <button type="button" class="header-pill-btn" onclick="sairDaConta()">🚪 Sair da conta</button>
                 </div>
-                <div class="form-group">
-                    <label>Açúcar usado na receita (R$)</label>
-                    <input type="number" id="c_acucar" step="0.01" value="1.50" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Margarina usada na receita (R$)</label>
-                    <input type="number" id="c_margarina" step="0.01" value="6.50" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Achocolatado usado na receita (R$)</label>
-                    <input type="number" id="c_achocolatado" step="0.01" value="4.80" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Farinha de Trigo usada (R$)</label>
-                    <input type="number" id="c_farinha" step="0.01" value="1.00" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Extras da receita (gotas, nozes, etc.) (R$)</label>
-                    <input type="number" id="c_extras" step="0.01" value="0.00" oninput="aoEditarAba1()">
-                </div>
-            </div>
+                <div id="save_status_badge" class="save-badge hidden"></div>
+            </header>
 
-            <div class="grid-2" style="margin-top: 14px;">
-                <div class="form-group">
-                    <label>Modo de cálculo dos Gastos Invisíveis</label>
-                    <select id="modo_invisivel" onchange="aoEditarAba1()">
-                        <option value="detalhado" selected>Usar Valor Real Calculado na Aba 2 (Tempo + Luz + Gás)</option>
-                        <option value="percentual">Porcentagem (%) sobre ingredientes</option>
-                    </select>
+            <!-- Painel de Sincronização Automática em Nuvem (Firebase Realtime Database REST API) -->
+            <div id="cloud_panel_card" class="card" style="padding: 14px 18px; margin-bottom: 16px; background: #fffbeb; border-color: #fde68a;">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div>
+                        <strong style="color: var(--primary); font-size: 0.94rem;">☁️ Sincronização Automática Entre Dispositivos</strong>
+                        <div class="helper-note" id="cloud_sync_hint" style="margin-top: 2px;">
+                            Configure a URL do <strong>Firebase Realtime Database</strong> e o identificador da sala para sincronizar entre celular e computador.
+                        </div>
+                    </div>
+                    <button type="button" class="btn-outline" style="margin-top: 0; padding: 7px 12px; font-size: 0.82rem;" onclick="toggleCloudConfig()">⚙️ Configurar Nuvem</button>
                 </div>
-                <div class="form-group" id="grupo_valor_detalhado">
-                    <label>Gastos invisíveis reais da fornada (Aba 2)</label>
-                    <input type="number" id="c_invisivel_real" step="0.01" value="0.00" readonly style="background: #f3f4f6; font-weight: 700;">
-                </div>
-                <div class="form-group hidden" id="grupo_taxa_percentual">
-                    <label>Custos invisíveis (% gás/luz/perdas)</label>
-                    <input type="number" id="c_taxa" step="1" value="25" oninput="aoEditarAba1()">
-                </div>
-            </div>
-        </div>
 
-        <div class="card">
-            <h2>2. Rendimento, Embalagem e Multiplicador</h2>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Qtd. de pedaços PEQUENOS na forma</label>
-                    <input type="number" id="qtd_p" step="1" value="10" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Qtd. de pedaços MÉDIOS na forma (1,5x o P)</label>
-                    <input type="number" id="qtd_m" step="1" value="6" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Custo da embalagem por unidade (R$)</label>
-                    <input type="number" id="c_emb" step="0.01" value="0.25" oninput="aoEditarAba1()">
-                </div>
-                <div class="form-group">
-                    <label>Multiplicador de Lucro (Ex: 2.5 ou 3.0)</label>
-                    <input type="number" id="mult_lucro" step="0.1" value="2.5" oninput="aoEditarAba1()">
-                </div>
-            </div>
-
-            <div class="result-box" id="res_lucro"></div>
-        </div>
-    </div>
-
-    <!-- ABA 2: RECEITA & INVISÍVEIS -->
-    <div id="tab-receita" class="hidden">
-        <div class="card">
-            <h2>1. Receita Salva (PDF ou Link da Receita)</h2>
-            <p class="helper-note">Anexe o <strong>PDF</strong> da receita ou salve o <strong>Link</strong> com ingredientes, modo de preparo, temperatura do fogão e tempo de bater/assar para abrir na hora que for fazer o brownie.</p>
-
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Nome / Identificação da Receita</label>
-                    <input type="text" id="rec_titulo" placeholder="Ex: Brownie Tradicional Casquinha Brilhante" oninput="salvarEstadoCompleto()">
-                </div>
-                <div class="form-group">
-                    <label>Temperatura do fogão / forno (ex: 180°C)</label>
-                    <input type="text" id="rec_temperatura" placeholder="Ex: 180°C (pré-aquecer 10 min)" oninput="calcularGastosInvisiveis(true)">
-                </div>
-            </div>
-
-            <div class="grid-2" style="margin-top: 14px;">
-                <div class="form-group">
-                    <label>Anexar arquivo PDF da receita (fica salvo nesta aba)</label>
-                    <input type="file" id="rec_pdf_input" accept="application/pdf,.pdf" onchange="salvarPdfReceita(this)">
-                    <span class="helper-note">O PDF é salvo localmente no navegador para você abrir quando for fazer o brownie.</span>
-                </div>
-                <div class="form-group">
-                    <label>Ou adicionar Link da receita (YouTube, blog, Drive, etc.)</label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                        <input type="url" id="rec_link_input" placeholder="https://..." style="flex: 1; min-width: 180px;">
-                        <button type="button" class="btn-outline" style="margin-top: 0;" onclick="salvarLinkReceita()">Salvar Link</button>
+                <div id="cloud_config_box" class="hidden" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #fcd34d;">
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>URL do Firebase Realtime Database</label>
+                            <input type="url" id="cloud_db_url" placeholder="https://gestao-de-brownie-default-rtdb.firebaseio.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Identificador da sala</label>
+                            <input type="text" id="cloud_room_id" placeholder="Ex: julia-brownies-2026">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="button" class="btn" style="margin-top: 0; padding: 10px 14px; font-size: 0.88rem;" onclick="conectarNuvem()">Conectar & Sincronizar</button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="recipe-vault-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-                    <strong style="color: var(--primary); font-size: 1rem;">📂 Receita Salva para Consulta na Hora do Preparo</strong>
-                    <span id="rec_resumo_rapido" class="badge-mode">Fogão: 180°C • Bater: 10 min • Assar: 30 min</span>
-                </div>
-                <div id="receita_salva_container"></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>2. Cálculo de Gastos Invisíveis: Tempo, Luz e Gás</h2>
-            <p class="helper-note">Calcule quanto você gasta com <strong>tempo</strong> (bater massa, assar e preparo), <strong>gás</strong> e <strong>energia elétrica</strong> em uma fornada. O valor total é salvo automaticamente na <strong>Aba 1</strong>.</p>
-
-            <h3 style="font-size: 1rem; color: var(--primary); margin: 14px 0 8px 0;">⏱️ A) Tempo Gasto (Bater Massa, Assar e Preparo)</h3>
-            <div class="grid-3">
-                <div class="form-group">
-                    <label>Tempo para bater a massa (minutos)</label>
-                    <input type="number" id="inv_tempo_bater" step="1" value="10" oninput="calcularGastosInvisiveis(true)">
-                </div>
-                <div class="form-group">
-                    <label>Tempo para assar no forno (minutos)</label>
-                    <input type="number" id="inv_tempo_assar" step="1" value="30" oninput="calcularGastosInvisiveis(true)">
-                </div>
-                <div class="form-group">
-                    <label>Tempo extra / embalar (min)</label>
-                    <input type="number" id="inv_mao_minutos" step="5" value="15" oninput="calcularGastosInvisiveis(true)">
-                    <span class="helper-note">Separar ingredientes, cortar, embalar e lavar louça</span>
-                </div>
+            <!-- Navegação das 5 abas -->
+            <div class="tabs">
+                <button type="button" id="btn-tab-lucro" class="tab-btn active" onclick="switchTab('tab-lucro', this)">1. 💵 Custos & Margem</button>
+                <button type="button" id="btn-tab-receita" class="tab-btn" onclick="switchTab('tab-receita', this)">2. 🍫 Receita & Invisíveis</button>
+                <button type="button" id="btn-tab-insumos" class="tab-btn" onclick="switchTab('tab-insumos', this)">3. 🛒 Insumos & Compras</button>
+                <button type="button" id="btn-tab-metas" class="tab-btn" onclick="switchTab('tab-metas', this)">4. 🎯 Metas & Comparador</button>
+                <button type="button" id="btn-tab-vendas" class="tab-btn" onclick="switchTab('tab-vendas', this)">5. 💰 Controle de Vendas</button>
             </div>
 
-            <div class="grid-2" style="margin-top: 12px;">
-                <div class="form-group">
-                    <label>Quanto vale sua hora de trabalho? (R$/h)</label>
-                    <input type="number" id="inv_mao_valor_hora" step="0.50" value="12.00" oninput="calcularGastosInvisiveis(true)">
-                    <span class="helper-note">Aplicado sobre o tempo total gasto (bater + assar + preparo)</span>
-                </div>
-                <div class="form-group">
-                    <label>Incluir custo de tempo no gasto invisível?</label>
-                    <select id="inv_mao_incluir" onchange="calcularGastosInvisiveis(true)">
-                        <option value="sim" selected>Sim, somar tempo gasto nos gastos invisíveis</option>
-                        <option value="nao">Não somar tempo (calcular apenas gás, luz e extras)</option>
-                    </select>
-                </div>
-            </div>
-
-            <h3 style="font-size: 1rem; color: var(--primary); margin: 18px 0 8px 0;">🔥 B) Gás de Cozinha (Forno)</h3>
-            <div class="grid-3">
-                <div class="form-group">
-                    <label>Preço do botijão P13 (13kg) (R$)</label>
-                    <input type="number" id="inv_gas_preco" step="0.01" value="115.00" oninput="calcularGastosInvisiveis(true)">
-                </div>
-                <div class="form-group">
-                    <label>Minutos de forno ligado (gás)</label>
-                    <input type="number" id="inv_gas_minutos" step="1" value="35" oninput="calcularGastosInvisiveis(true)">
-                    <span class="helper-note">Inclua pré-aquecimento + tempo de forno a gás</span>
-                </div>
-                <div class="form-group">
-                    <label>Consumo do forno (kg/hora)</label>
-                    <select id="inv_gas_consumo" onchange="calcularGastosInvisiveis(true)">
-                        <option value="0.12">Forno doméstico baixo (~0,12 kg/h)</option>
-                        <option value="0.18" selected>Forno doméstico médio (~0,18 kg/h - Padrão)</option>
-                        <option value="0.25">Forno doméstico alto (~0,25 kg/h)</option>
-                        <option value="0.45">Forno semi-industrial (~0,45 kg/h)</option>
-                    </select>
-                </div>
-            </div>
-
-            <h3 style="font-size: 1rem; color: var(--primary); margin: 18px 0 8px 0;">⚡ C) Energia Elétrica (Batedeira / Forno Elétrico / Luz)</h3>
-            <div class="grid-3">
-                <div class="form-group">
-                    <label>Tarifa de energia (R$/kWh)</label>
-                    <input type="number" id="inv_luz_tarifa" step="0.01" value="0.92" oninput="calcularGastosInvisiveis(true)">
-                    <span class="helper-note">Média Brasil/SP com impostos: R$ 0,85 a R$ 0,98</span>
-                </div>
-                <div class="form-group">
-                    <label>Potência dos aparelhos (Watts)</label>
-                    <select id="inv_luz_potencia" onchange="calcularGastosInvisiveis(true)">
-                        <option value="350" selected>Batedeira + Luz cozinha (~350W - Forno a gás)</option>
-                        <option value="600">Batedeira Planetária + Micro-ondas (~600W)</option>
-                        <option value="1800">Forno Elétrico Pequeno (~1800W)</option>
-                        <option value="2500">Forno Elétrico Médio/Grande (~2500W)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Tempo de uso elétrico (minutos)</label>
-                    <input type="number" id="inv_luz_minutos" step="1" value="15" oninput="calcularGastosInvisiveis(true)">
-                </div>
-            </div>
-
-            <h3 style="font-size: 1rem; color: var(--primary); margin: 18px 0 8px 0;">💡 D) Outros Gastos Invisíveis Pontuais (Opcional)</h3>
-            <p class="helper-note">Adicione outros gastos invisíveis da fornada se precisar:</p>
-            <div class="chip-container">
-                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Água e detergente (lavar louça/forma)', 0.65)">+ Água e detergente (R$ 0,65)</button>
-                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Papel manteiga / desmoldante para forma', 0.85)">+ Papel manteiga / untar (R$ 0,85)</button>
-                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Etiqueta adesiva / lacre / fita', 1.20)">+ Etiquetas e lacres (R$ 1,20)</button>
-                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Taxa maquininha / Pix / Sacolinha', 1.50)">+ Taxa maquininha / sacola (R$ 1,50)</button>
-            </div>
-
-            <div class="grid-3">
-                <div class="form-group">
-                    <label>Outro gasto invisível (Descrição)</label>
-                    <input type="text" id="inv_extra_nome" placeholder="Ex: Papel toalha / esponja">
-                </div>
-                <div class="form-group">
-                    <label>Custo por fornada (R$)</label>
-                    <input type="number" id="inv_extra_valor" step="0.05" placeholder="0.50">
-                </div>
-                <div class="form-group" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-outline" style="margin-top: 0; width: 100%;" onclick="adicionarExtraInvisivelManual()">+ Adicionar Gasto</button>
-                </div>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Gasto Invisível Extra</th>
-                        <th>Custo por Fornada</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="tabela_invisiveis_extras_body"></tbody>
-            </table>
-
-            <div class="result-box" id="res_gastos_invisiveis"></div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
-                <button type="button" class="btn" style="flex: 1; min-width: 240px;" onclick="enviarInvisiveisParaAba1()">✅ Salvar Gastos Invisíveis na Aba 1 e Ir para Custos</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ABA 3: INSUMOS & COMPRAS -->
-    <div id="tab-insumos" class="hidden">
-        <div class="card">
-            <h2>1. Calculadora de Custo Proporcional na Receita</h2>
-            <p class="helper-note">Escolha um ingrediente e calcule quanto custa apenas a parte usada na fornada.</p>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Ingrediente</label>
-                    <select id="ing_nome" onchange="calcularProporcao(true)">
-                        <option value="Ovos">Ovos</option>
-                        <option value="Açúcar">Açúcar</option>
-                        <option value="Margarina" selected>Margarina</option>
-                        <option value="Achocolatado">Achocolatado</option>
-                        <option value="Farinha de Trigo">Farinha de Trigo</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Preço da embalagem fechada (R$)</label>
-                    <input type="number" id="ing_preco" step="0.01" value="14.00" oninput="calcularProporcao(true)">
-                </div>
-                <div class="form-group">
-                    <label>Peso/Qtd. total da embalagem (g, ml ou un)</label>
-                    <input type="number" id="ing_total" step="0.1" value="500" oninput="calcularProporcao(true)">
-                </div>
-                <div class="form-group">
-                    <label>Quanto a receita usa (mesma unidade)</label>
-                    <input type="number" id="ing_uso" step="0.1" value="200" oninput="calcularProporcao(true)">
-                </div>
-            </div>
-            <div class="result-box" id="res_proporcao"></div>
-            <button type="button" class="btn-outline" onclick="aplicarProporcaoNaReceita()">Aplicar este valor na Aba 1</button>
-        </div>
-
-        <div class="card">
-            <h2>2. Simulador de Compra Inicial (Estoque + Utensílios)</h2>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Item (Insumo ou Utensílio)</label>
-                    <input type="text" id="comp_item" placeholder="Ex: Achocolatado 1kg" oninput="salvarEstadoCompleto()">
-                </div>
-                <div class="form-group">
-                    <label>Valor unitário (R$)</label>
-                    <input type="number" id="comp_valor" step="0.01" placeholder="24.00" oninput="salvarEstadoCompleto()">
-                </div>
-                <div class="form-group">
-                    <label>Quantidade</label>
-                    <input type="number" id="comp_qtd" step="1" value="1" oninput="salvarEstadoCompleto()">
-                </div>
-            </div>
-            <button type="button" class="btn btn-secondary" onclick="adicionarItemCompra()">+ Adicionar à Lista de Compras</button>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Item</th>
-                        <th>Qtd.</th>
-                        <th>Unitário (R$)</th>
-                        <th>Subtotal</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody id="lista_compras_body"></tbody>
-            </table>
-
-            <div class="result-box" style="margin-top: 16px;">
-                <strong>ESTIMATIVA TOTAL DA COMPRA INICIAL: <span id="total_compra_geral" style="font-size: 1.25rem;">R$ 0,00</span></strong>
-            </div>
-        </div>
-    </div>
-
-    <!-- ABA 4: METAS & COMPARADOR -->
-    <div id="tab-metas" class="hidden">
-        <div class="card">
-            <h2>1. Ponto de Equilíbrio (Quando você recupera o investimento?)</h2>
-            <p class="helper-note">Usa automaticamente o total da sua Lista de Compras (Aba 3) e o lucro calculado na Aba 1.</p>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Investimento inicial a recuperar (R$)</label>
-                    <input type="number" id="pe_investimento" step="0.01" oninput="aoEditarInvestimento()">
-                </div>
-            </div>
-            <div class="result-box" id="res_ponto_equilibrio"></div>
-        </div>
-
-        <div class="card">
-            <h2>2. Planejador de Meta de Lucro Mensal</h2>
-            <p class="helper-note">Descubra quantas fornadas e unidades precisa vender no mês para bater sua meta financeira.</p>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Meta de lucro líquido no mês (R$)</label>
-                    <input type="number" id="meta_mensal" step="10" value="600.00" oninput="calcularMetas(true)">
-                </div>
-                <div class="form-group">
-                    <label>Semanas de venda no mês</label>
-                    <input type="number" id="meta_semanas" step="1" value="4" oninput="calcularMetas(true)">
-                </div>
-            </div>
-            <div class="result-box" id="res_meta_mensal"></div>
-        </div>
-
-        <div class="card">
-            <h2>3. Comparador de Embalagens (Preço por Grama)</h2>
-            <p class="helper-note">Compare duas opções no mercado para ver qual rende mais por real gasto.</p>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Preço Opção A (R$)</label>
-                    <input type="number" id="comp_pa" step="0.01" value="10.90" oninput="compararEmbalagens(true)">
-                </div>
-                <div class="form-group">
-                    <label>Peso Opção A (g ou ml)</label>
-                    <input type="number" id="comp_ga" step="1" value="370" oninput="compararEmbalagens(true)">
-                </div>
-                <div class="form-group">
-                    <label>Preço Opção B (R$)</label>
-                    <input type="number" id="comp_pb" step="0.01" value="24.00" oninput="compararEmbalagens(true)">
-                </div>
-                <div class="form-group">
-                    <label>Peso Opção B (g ou ml)</label>
-                    <input type="number" id="comp_gb" step="1" value="1000" oninput="compararEmbalagens(true)">
-                </div>
-            </div>
-            <div class="result-box" id="res_comparador"></div>
-        </div>
-    </div>
-
-    <!-- ABA 5: CONTROLE DE VENDAS -->
-    <div id="tab-vendas" class="hidden">
-        <div class="card">
-            <h2>1. Contador Rápido de Vendas (Toque para Somar ou Subtrair)</h2>
-            <p class="helper-note">Toque em <strong>+</strong> ou <strong>−</strong> conforme for vendendo. Todos os cálculos abaixo atualizam na hora e ficam salvos automaticamente no navegador.</p>
-
-            <div class="counter-box">
-                <div class="counter-title">🍫 Brownie</div>
-
-                <div class="counter-row">
-                    <div class="counter-label-group">
-                        <span class="counter-size">Pequeno</span>
-                        <span class="counter-subprice" id="label_info_p">Preço: R$ 0,00 | Lucro/un.: R$ 0,00</span>
+            <!-- ABA 1: CUSTOS & MARGEM -->
+            <div id="tab-lucro">
+                <div class="card">
+                    <h2>1. Custo dos Ingredientes Usados na Receita</h2>
+                    <p class="helper-note">Preencha os ingredientes da fornada aqui na Aba 1. Os <strong>Gastos Invisíveis</strong> (tempo, luz e gás) calculados na Aba 2 são somados automaticamente.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Ovos usados na receita (R$)</label>
+                            <input type="number" id="c_ovos" step="0.01" value="3.00" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Açúcar usado na receita (R$)</label>
+                            <input type="number" id="c_acucar" step="0.01" value="1.50" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Margarina usada na receita (R$)</label>
+                            <input type="number" id="c_margarina" step="0.01" value="6.50" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Achocolatado usado na receita (R$)</label>
+                            <input type="number" id="c_achocolatado" step="0.01" value="4.80" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Farinha de Trigo usada (R$)</label>
+                            <input type="number" id="c_farinha" step="0.01" value="1.00" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Extras da receita (gotas, nozes, etc.) (R$)</label>
+                            <input type="number" id="c_extras" step="0.01" value="0.00" oninput="aoEditarAba1()">
+                        </div>
                     </div>
-                    <div class="counter-controls">
-                        <button type="button" class="btn-step btn-minus" onclick="alterarContador('P', -1)">−</button>
-                        <span class="counter-value" id="contador_p">0</span>
-                        <button type="button" class="btn-step btn-plus" onclick="alterarContador('P', 1)">+</button>
+
+                    <div class="grid-2" style="margin-top: 14px;">
+                        <div class="form-group">
+                            <label>Modo de cálculo dos Gastos Invisíveis</label>
+                            <select id="modo_invisivel" onchange="aoEditarAba1()">
+                                <option value="detalhado" selected>Usar Valor Real Calculado na Aba 2 (Tempo + Luz + Gás)</option>
+                                <option value="percentual">Porcentagem (%) sobre ingredientes</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="grupo_valor_detalhado">
+                            <label>Gastos invisíveis reais da fornada (Aba 2)</label>
+                            <input type="number" id="c_invisivel_real" step="0.01" value="0.00" readonly style="background: #f3f4f6; font-weight: 700;">
+                        </div>
+                        <div class="form-group hidden" id="grupo_taxa_percentual">
+                            <label>Custos invisíveis (% gás/luz/perdas)</label>
+                            <input type="number" id="c_taxa" step="1" value="25" oninput="aoEditarAba1()">
+                        </div>
                     </div>
                 </div>
 
-                <div class="counter-row">
-                    <div class="counter-label-group">
-                        <span class="counter-size">Médio</span>
-                        <span class="counter-subprice" id="label_info_m">Preço: R$ 0,00 | Lucro/un.: R$ 0,00</span>
+                <div class="card">
+                    <h2>2. Rendimento, Embalagem e Multiplicador</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Qtd. de pedaços PEQUENOS na forma</label>
+                            <input type="number" id="qtd_p" step="1" value="10" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Qtd. de pedaços MÉDIOS na forma (1,5x o P)</label>
+                            <input type="number" id="qtd_m" step="1" value="6" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Custo da embalagem por unidade (R$)</label>
+                            <input type="number" id="c_emb" step="0.01" value="0.25" oninput="aoEditarAba1()">
+                        </div>
+                        <div class="form-group">
+                            <label>Multiplicador de Lucro (Ex: 2.5 ou 3.0)</label>
+                            <input type="number" id="mult_lucro" step="0.1" value="2.5" oninput="aoEditarAba1()">
+                        </div>
                     </div>
-                    <div class="counter-controls">
-                        <button type="button" class="btn-step btn-minus" onclick="alterarContador('M', -1)">−</button>
-                        <span class="counter-value" id="contador_m">0</span>
-                        <button type="button" class="btn-step btn-plus" onclick="alterarContador('M', 1)">+</button>
+
+                    <div class="result-box" id="res_lucro"></div>
+                </div>
+            </div>
+
+            <!-- ABA 2: RECEITA & INVISÍVEIS -->
+            <div id="tab-receita" class="hidden">
+                <div class="card">
+                    <h2>1. Receita Salva (PDF ou Link da Receita)</h2>
+                    <p class="helper-note">Anexe o <strong>PDF</strong> da receita ou salve o <strong>Link</strong> com ingredientes, modo de preparo, temperatura do fogão e tempo de bater/assar.</p>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nome / Identificação da Receita</label>
+                            <input type="text" id="rec_titulo" placeholder="Ex: Brownie Tradicional Casquinha Brilhante" oninput="salvarEstadoCompleto()">
+                        </div>
+                        <div class="form-group">
+                            <label>Temperatura do fogão / forno (ex: 180°C)</label>
+                            <input type="text" id="rec_temperatura" placeholder="Ex: 180°C (pré-aquecer 10 min)" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="margin-top: 14px;">
+                        <div class="form-group">
+                            <label>Anexar arquivo PDF da receita (fica salvo nesta aba)</label>
+                            <input type="file" id="rec_pdf_input" accept="application/pdf,.pdf" onchange="salvarPdfReceita(this)">
+                            <span class="helper-note">O PDF é salvo localmente no navegador para abrir na hora do preparo.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Ou adicionar Link da receita (YouTube, blog, Drive, etc.)</label>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <input type="url" id="rec_link_input" placeholder="https://..." style="flex: 1; min-width: 180px;">
+                                <button type="button" class="btn-outline" style="margin-top: 0;" onclick="salvarLinkReceita()">Salvar Link</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="recipe-vault-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                            <strong style="color: var(--primary); font-size: 0.96rem;">📂 Receita Salva para Consulta na Hora do Preparo</strong>
+                            <span id="rec_resumo_rapido" class="badge-mode">Fogão: 180°C • Bater: 10 min • Assar: 30 min</span>
+                        </div>
+                        <div id="receita_salva_container"></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>2. Cálculo de Gastos Invisíveis: Tempo, Luz e Gás</h2>
+                    <p class="helper-note">Calcule quanto você gasta com <strong>tempo</strong>, <strong>gás</strong> e <strong>energia elétrica</strong> em uma fornada. O valor total é salvo automaticamente na <strong>Aba 1</strong>.</p>
+
+                    <h3 style="font-size: 0.96rem; color: var(--primary); margin: 14px 0 8px 0;">⏱️ A) Tempo Gasto (Bater Massa, Assar e Preparo)</h3>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Tempo para bater a massa (minutos)</label>
+                            <input type="number" id="inv_tempo_bater" step="1" value="10" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Tempo para assar no forno (minutos)</label>
+                            <input type="number" id="inv_tempo_assar" step="1" value="30" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Tempo extra / embalar (min)</label>
+                            <input type="number" id="inv_mao_minutos" step="5" value="15" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                    </div>
+
+                    <div class="grid-2" style="margin-top: 12px;">
+                        <div class="form-group">
+                            <label>Quanto vale sua hora de trabalho? (R$/h)</label>
+                            <input type="number" id="inv_mao_valor_hora" step="0.50" value="12.00" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Incluir custo de tempo no gasto invisível?</label>
+                            <select id="inv_mao_incluir" onchange="calcularGastosInvisiveis(true)">
+                                <option value="sim" selected>Sim, somar tempo gasto nos gastos invisíveis</option>
+                                <option value="nao">Não somar tempo (calcular apenas gás, luz e extras)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 0.96rem; color: var(--primary); margin: 18px 0 8px 0;">🔥 B) Gás de Cozinha (Forno)</h3>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Preço do botijão P13 (13kg) (R$)</label>
+                            <input type="number" id="inv_gas_preco" step="0.01" value="115.00" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Minutos de forno ligado (gás)</label>
+                            <input type="number" id="inv_gas_minutos" step="1" value="35" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Consumo do forno (kg/hora)</label>
+                            <select id="inv_gas_consumo" onchange="calcularGastosInvisiveis(true)">
+                                <option value="0.12">Forno doméstico baixo (~0,12 kg/h)</option>
+                                <option value="0.18" selected>Forno doméstico médio (~0,18 kg/h - Padrão)</option>
+                                <option value="0.25">Forno doméstico alto (~0,25 kg/h)</option>
+                                <option value="0.45">Forno semi-industrial (~0,45 kg/h)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 0.96rem; color: var(--primary); margin: 18px 0 8px 0;">⚡ C) Energia Elétrica (Batedeira / Forno Elétrico / Luz)</h3>
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Tarifa de energia (R$/kWh)</label>
+                            <input type="number" id="inv_luz_tarifa" step="0.01" value="0.92" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Potência dos aparelhos (Watts)</label>
+                            <select id="inv_luz_potencia" onchange="calcularGastosInvisiveis(true)">
+                                <option value="350" selected>Batedeira + Luz cozinha (~350W)</option>
+                                <option value="600">Batedeira Planetária + Micro-ondas (~600W)</option>
+                                <option value="1800">Forno Elétrico Pequeno (~1800W)</option>
+                                <option value="2500">Forno Elétrico Médio/Grande (~2500W)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Tempo de uso elétrico (minutos)</label>
+                            <input type="number" id="inv_luz_minutos" step="1" value="15" oninput="calcularGastosInvisiveis(true)">
+                        </div>
+                    </div>
+
+                    <h3 style="font-size: 0.96rem; color: var(--primary); margin: 18px 0 8px 0;">💡 D) Outros Gastos Invisíveis Pontuais (Opcional)</h3>
+                    <div class="chip-container">
+                        <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Água e detergente (lavar louça/forma)', 0.65)">+ Água e detergente (R$ 0,65)</button>
+                        <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Papel manteiga / desmoldante para forma', 0.85)">+ Papel manteiga / untar (R$ 0,85)</button>
+                        <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Etiqueta adesiva / lacre / fita', 1.20)">+ Etiquetas e lacres (R$ 1,20)</button>
+                        <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Taxa maquininha / Pix / Sacolinha', 1.50)">+ Taxa maquininha / sacola (R$ 1,50)</button>
+                    </div>
+
+                    <div class="grid-3">
+                        <div class="form-group">
+                            <label>Outro gasto invisível (Descrição)</label>
+                            <input type="text" id="inv_extra_nome" placeholder="Ex: Papel toalha / esponja">
+                        </div>
+                        <div class="form-group">
+                            <label>Custo por fornada (R$)</label>
+                            <input type="number" id="inv_extra_valor" step="0.05" placeholder="0.50">
+                        </div>
+                        <div class="form-group" style="justify-content: flex-end;">
+                            <button type="button" class="btn btn-outline" style="margin-top: 0; width: 100%;" onclick="adicionarExtraInvisivelManual()">+ Adicionar Gasto</button>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gasto Invisível Extra</th>
+                                <th>Custo por Fornada</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabela_invisiveis_extras_body"></tbody>
+                    </table>
+
+                    <div class="result-box" id="res_gastos_invisiveis"></div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
+                        <button type="button" class="btn" style="flex: 1; min-width: 240px;" onclick="enviarInvisiveisParaAba1()">✅ Salvar Gastos Invisíveis na Aba 1 e Ir para Custos</button>
                     </div>
                 </div>
             </div>
 
-            <div class="grid-2">
-                <div class="form-group">
-                    <label>Preço de venda do PEQUENO (R$)</label>
-                    <input type="number" id="venda_preco_p" step="0.01" oninput="aoEditarPrecoVenda()">
+            <!-- ABA 3: INSUMOS & COMPRAS -->
+            <div id="tab-insumos" class="hidden">
+                <div class="card">
+                    <h2>1. Calculadora de Custo Proporcional na Receita</h2>
+                    <p class="helper-note">Escolha um ingrediente e calcule quanto custa apenas a parte usada na fornada.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Ingrediente</label>
+                            <select id="ing_nome" onchange="calcularProporcao(true)">
+                                <option value="Ovos">Ovos</option>
+                                <option value="Açúcar">Açúcar</option>
+                                <option value="Margarina" selected>Margarina</option>
+                                <option value="Achocolatado">Achocolatado</option>
+                                <option value="Farinha de Trigo">Farinha de Trigo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Preço da embalagem fechada (R$)</label>
+                            <input type="number" id="ing_preco" step="0.01" value="14.00" oninput="calcularProporcao(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Peso/Qtd. total da embalagem (g, ml ou un)</label>
+                            <input type="number" id="ing_total" step="0.1" value="500" oninput="calcularProporcao(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Quanto a receita usa (mesma unidade)</label>
+                            <input type="number" id="ing_uso" step="0.1" value="200" oninput="calcularProporcao(true)">
+                        </div>
+                    </div>
+                    <div class="result-box" id="res_proporcao"></div>
+                    <button type="button" class="btn-outline" onclick="aplicarProporcaoNaReceita()">Aplicar este valor na Aba 1</button>
                 </div>
-                <div class="form-group">
-                    <label>Preço de venda do MÉDIO (R$)</label>
-                    <input type="number" id="venda_preco_m" step="0.01" oninput="aoEditarPrecoVenda()">
+
+                <div class="card">
+                    <h2>2. Simulador de Compra Inicial (Estoque + Utensílios)</h2>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Item (Insumo ou Utensílio)</label>
+                            <input type="text" id="comp_item" placeholder="Ex: Achocolatado 1kg" oninput="salvarEstadoCompleto()">
+                        </div>
+                        <div class="form-group">
+                            <label>Valor unitário (R$)</label>
+                            <input type="number" id="comp_valor" step="0.01" placeholder="24.00" oninput="salvarEstadoCompleto()">
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade</label>
+                            <input type="number" id="comp_qtd" step="1" value="1" oninput="salvarEstadoCompleto()">
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="adicionarItemCompra()">+ Adicionar à Lista de Compras</button>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Qtd.</th>
+                                <th>Unitário (R$)</th>
+                                <th>Subtotal</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista_compras_body"></tbody>
+                    </table>
+
+                    <div class="result-box" style="margin-top: 16px;">
+                        <strong>ESTIMATIVA TOTAL DA COMPRA INICIAL: <span id="total_compra_geral" style="font-size: 1.2rem;">R$ 0,00</span></strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ABA 4: METAS & COMPARADOR -->
+            <div id="tab-metas" class="hidden">
+                <div class="card">
+                    <h2>1. Ponto de Equilíbrio (Quando você recupera o investimento?)</h2>
+                    <p class="helper-note">Usa automaticamente o total da sua Lista de Compras (Aba 3) e o lucro calculado na Aba 1.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Investimento inicial a recuperar (R$)</label>
+                            <input type="number" id="pe_investimento" step="0.01" oninput="aoEditarInvestimento()">
+                        </div>
+                    </div>
+                    <div class="result-box" id="res_ponto_equilibrio"></div>
+                </div>
+
+                <div class="card">
+                    <h2>2. Planejador de Meta de Lucro Mensal</h2>
+                    <p class="helper-note">Descubra quantas fornadas e unidades precisa vender no mês para bater sua meta financeira.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Meta de lucro líquido no mês (R$)</label>
+                            <input type="number" id="meta_mensal" step="10" value="600.00" oninput="calcularMetas(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Semanas de venda no mês</label>
+                            <input type="number" id="meta_semanas" step="1" value="4" oninput="calcularMetas(true)">
+                        </div>
+                    </div>
+                    <div class="result-box" id="res_meta_mensal"></div>
+                </div>
+
+                <div class="card">
+                    <h2>3. Comparador de Embalagens (Preço por Grama)</h2>
+                    <p class="helper-note">Compare duas opções no mercado para ver qual rende mais por real gasto.</p>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Preço Opção A (R$)</label>
+                            <input type="number" id="comp_pa" step="0.01" value="10.90" oninput="compararEmbalagens(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Peso Opção A (g ou ml)</label>
+                            <input type="number" id="comp_ga" step="1" value="370" oninput="compararEmbalagens(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço Opção B (R$)</label>
+                            <input type="number" id="comp_pb" step="0.01" value="24.00" oninput="compararEmbalagens(true)">
+                        </div>
+                        <div class="form-group">
+                            <label>Peso Opção B (g ou ml)</label>
+                            <input type="number" id="comp_gb" step="1" value="1000" oninput="compararEmbalagens(true)">
+                        </div>
+                    </div>
+                    <div class="result-box" id="res_comparador"></div>
+                </div>
+            </div>
+
+            <!-- ABA 5: CONTROLE DE VENDAS -->
+            <div id="tab-vendas" class="hidden">
+                <div class="card">
+                    <h2>1. Contador Rápido de Vendas (Toque para Somar ou Subtrair)</h2>
+                    <p class="helper-note">Toque em <strong>+</strong> ou <strong>−</strong> conforme for vendendo. Todos os cálculos abaixo atualizam na hora e ficam salvos automaticamente.</p>
+
+                    <div class="counter-box">
+                        <div class="counter-title">🍫 Brownie</div>
+
+                        <div class="counter-row">
+                            <div class="counter-label-group">
+                                <span class="counter-size">Pequeno</span>
+                                <span class="counter-subprice" id="label_info_p">Preço: R$ 0,00 | Lucro/un.: R$ 0,00</span>
+                            </div>
+                            <div class="counter-controls">
+                                <button type="button" class="btn-step btn-minus" onclick="alterarContador('P', -1)">−</button>
+                                <span class="counter-value" id="contador_p">0</span>
+                                <button type="button" class="btn-step btn-plus" onclick="alterarContador('P', 1)">+</button>
+                            </div>
+                        </div>
+
+                        <div class="counter-row">
+                            <div class="counter-label-group">
+                                <span class="counter-size">Médio</span>
+                                <span class="counter-subprice" id="label_info_m">Preço: R$ 0,00 | Lucro/un.: R$ 0,00</span>
+                            </div>
+                            <div class="counter-controls">
+                                <button type="button" class="btn-step btn-minus" onclick="alterarContador('M', -1)">−</button>
+                                <span class="counter-value" id="contador_m">0</span>
+                                <button type="button" class="btn-step btn-plus" onclick="alterarContador('M', 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Preço de venda do PEQUENO (R$)</label>
+                            <input type="number" id="venda_preco_p" step="0.01" oninput="aoEditarPrecoVenda()">
+                        </div>
+                        <div class="form-group">
+                            <label>Preço de venda do MÉDIO (R$)</label>
+                            <input type="number" id="venda_preco_m" step="0.01" oninput="aoEditarPrecoVenda()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>2. Resultado em Tempo Real das Suas Vendas</h2>
+                    <div id="resumo_vendas_cards"></div>
+                    <div id="status_investimento_vendas"></div>
+
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
+                        <button type="button" class="btn btn-secondary" style="width: auto; margin-top: 10px;" onclick="fecharDiaNoHistorico()">Salvar contagem atual no histórico e zerar contador</button>
+                        <button type="button" class="btn-outline" onclick="zerarContadorAtual()">Zerar contador atual</button>
+                    </div>
+
+                    <h3 style="margin-top: 24px; color: var(--primary); font-size: 1.02rem;">Histórico de Dias / Fechamentos Salvos</h3>
+                    <div style="overflow-x: auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Data / Ref.</th>
+                                    <th>Pequenos</th>
+                                    <th>Médios</th>
+                                    <th>Total Vendido</th>
+                                    <th>Custo Produção</th>
+                                    <th>Lucro Líquido</th>
+                                    <th>Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historico_vendas_body"></tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn-outline" onclick="limparVendas()">Apagar histórico salvo</button>
+                </div>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="footer-bar">
+                <div>Todas as respostas, receitas, gastos invisíveis, listas e vendas são salvos automaticamente.</div>
+                <div>
+                    <button type="button" class="btn-outline" style="font-size: 0.78rem; padding: 6px 12px;" onclick="restaurarPadroes()">Restaurar valores padrão de fábrica</button>
+                </div>
+                <div class="footer-mini-row">
+                    <div id="account_mini_bar" class="sync-mini-bar hidden">
+                        <span class="sync-mini-status">
+                            <span class="sync-dot"></span>
+                            <span id="account_mini_text">Conta conectada</span>
+                        </span>
+                        <button type="button" class="sync-mini-link" onclick="sairDaConta()">Sair</button>
+                    </div>
+                    <div id="cloud_mini_status_bar" class="sync-mini-bar hidden">
+                        <span class="sync-mini-status">
+                            <span id="sync_mini_dot" class="sync-dot"></span>
+                            <span id="sync_mini_text">Sincronizado</span>
+                        </span>
+                        <button type="button" class="sync-mini-link" onclick="reabrirConfigNuvem()">Alterar</button>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <div class="card">
-            <h2>2. Resultado em Tempo Real das Suas Vendas</h2>
-            <div id="resumo_vendas_cards"></div>
-            <div id="status_investimento_vendas"></div>
-
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
-                <button type="button" class="btn btn-secondary" style="width: auto; margin-top: 10px;" onclick="fecharDiaNoHistorico()">Salvar contagem atual no histórico e zerar contador</button>
-                <button type="button" class="btn-outline" onclick="zerarContadorAtual()">Zerar contador atual</button>
-            </div>
-
-            <h3 style="margin-top: 24px; color: var(--primary); font-size: 1.05rem;">Histórico de Dias / Fechamentos Salvos</h3>
-            <p class="helper-note">Opcional: use o botão acima para fechar o caixa do dia e guardar no histórico abaixo.</p>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data / Ref.</th>
-                            <th>Pequenos</th>
-                            <th>Médios</th>
-                            <th>Total Vendido</th>
-                            <th>Custo Produção</th>
-                            <th>Lucro Líquido</th>
-                            <th>Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historico_vendas_body"></tbody>
-                </table>
-            </div>
-            <button type="button" class="btn-outline" onclick="limparVendas()">Apagar histórico salvo</button>
-        </div>
     </div>
 
-    <!-- Rodapé com ações de manutenção, conta conectada e mini-barra de sincronização -->
-    <div class="footer-bar">
-        <div>Todas as respostas, receitas (PDF ou Link), gastos invisíveis, listas e vendas são salvos automaticamente.</div>
-        <div>
-            <button type="button" class="btn-outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="restaurarPadroes()">Restaurar valores padrão de fábrica</button>
-        </div>
-        <div class="footer-mini-row">
-            <div id="account_mini_bar" class="sync-mini-bar hidden">
-                <span class="sync-mini-status">
-                    <span class="sync-dot"></span>
-                    <span id="account_mini_text">Conta Google</span>
-                </span>
-                <button type="button" class="sync-mini-link" onclick="sairDaConta()">Sair</button>
-            </div>
-            <div id="cloud_mini_status_bar" class="sync-mini-bar hidden">
-                <span class="sync-mini-status">
-                    <span id="sync_mini_dot" class="sync-dot"></span>
-                    <span id="sync_mini_text">Sincronizado</span>
-                </span>
-                <button type="button" class="sync-mini-link" onclick="reabrirConfigNuvem()">Alterar</button>
+    <!-- Notificação flutuante -->
+    <div id="toast_msg" class="toast"></div>
+
+    <!-- Modal customizado de confirmação -->
+    <div id="confirm_modal" class="modal-backdrop hidden">
+        <div class="modal-card">
+            <h3 id="confirm_title">Confirmar ação</h3>
+            <p id="confirm_text">Tem certeza?</p>
+            <div class="modal-actions">
+                <button type="button" class="btn-outline" style="margin-top: 0;" onclick="fecharConfirmModal(false)">Cancelar</button>
+                <button type="button" class="btn btn-secondary" style="width: auto; margin-top: 0;" onclick="fecharConfirmModal(true)">Confirmar</button>
             </div>
         </div>
     </div>
-</div>
-
-<!-- Notificação flutuante -->
-<div id="toast_msg" class="toast"></div>
-
-<!-- Modal customizado de confirmação -->
-<div id="confirm_modal" class="modal-backdrop hidden">
-    <div class="modal-card">
-        <h3 id="confirm_title">Confirmar ação</h3>
-        <p id="confirm_text">Tem certeza?</p>
-        <div class="modal-actions">
-            <button type="button" class="btn-outline" style="margin-top: 0;" onclick="fecharConfirmModal(false)">Cancelar</button>
-            <button type="button" class="btn btn-secondary" style="width: auto; margin-top: 0;" onclick="fecharConfirmModal(true)">Confirmar</button>
-        </div>
-    </div>
-</div>
 
 <script>
-    // LOGIN GOOGLE (Firebase Authentication)
+    // =========================================================
+    // TELA DE CARREGAMENTO MINIMALISTA (#fdf8f5 + BROWNIE)
+    // =========================================================
+    function iniciarSplashScreen(duracaoMs = 1350) {
+        const splash = document.getElementById('splash-screen');
+        if (!splash) return;
+        splash.classList.remove('fade-out');
+        setTimeout(() => {
+            splash.classList.add('fade-out');
+        }, duracaoMs);
+    }
+
+    function reverTelaCarregamento() {
+        iniciarSplashScreen(1350);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        iniciarSplashScreen(1350);
+    });
+
+    // =========================================================
+    // AUTENTICAÇÃO: E-MAIL/SENHA, CRIAR CONTA E GOOGLE (signInWithPopup)
+    // =========================================================
     const FIREBASE_AUTH_CONFIG = {
         apiKey: "AIzaSyACmfuLcs2hXVK-VB_0OU5fGKMdRmhvzVw",
         authDomain: "gestao-de-brownie.firebaseapp.com",
@@ -1279,158 +1604,276 @@
         appId: "1:577319848649:web:1ef05a985ff63e4928db18",
         measurementId: "G-W4SC52KQS1"
     };
+
     let firebaseAuth = null;
     let firebaseAuthDisponivel = false;
+    let modoAuthAtual = 'login'; // 'login' ou 'signup'
 
-    function firebaseConfigPreenchida() {
-        return Boolean(FIREBASE_AUTH_CONFIG.apiKey &&
-                       FIREBASE_AUTH_CONFIG.authDomain &&
-                       FIREBASE_AUTH_CONFIG.projectId &&
-                       FIREBASE_AUTH_CONFIG.appId);
-    }
+    function alternarModoAuth(modo) {
+        modoAuthAtual = modo;
+        const tabLogin = document.getElementById('tab-auth-login');
+        const tabSignup = document.getElementById('tab-auth-signup');
+        const nameGroup = document.getElementById('auth-name-group');
+        const confirmGroup = document.getElementById('auth-confirm-group');
+        const forgotRow = document.getElementById('auth-forgot-row');
+        const submitBtn = document.getElementById('auth-submit-btn');
+        const subtitle = document.getElementById('auth-subtitle');
+        const switchHint = document.getElementById('auth-switch-hint');
+        const passInput = document.getElementById('auth_password');
+        const confirmInput = document.getElementById('auth_password_confirm');
 
-    function aplicarEstadoVisualConta(user) {
-        const panel = document.getElementById('login_panel');
-        const status = document.getElementById('login_status');
-        const accountBar = document.getElementById('account_mini_bar');
-        const accountText = document.getElementById('account_mini_text');
+        limparFeedbackAuth();
 
-        if (user) {
-            if (panel) panel.classList.add('hidden');
-            if (accountText) accountText.textContent = user.email || user.displayName || 'Conta Google';
-            if (accountBar) accountBar.classList.remove('hidden');
+        if (modo === 'signup') {
+            tabSignup.classList.add('active');
+            tabSignup.setAttribute('aria-selected', 'true');
+            tabLogin.classList.remove('active');
+            tabLogin.setAttribute('aria-selected', 'false');
+
+            nameGroup.classList.remove('hidden');
+            confirmGroup.classList.remove('hidden');
+            confirmInput.required = true;
+            forgotRow.classList.add('hidden');
+
+            subtitle.textContent = 'Crie sua conta com e-mail e senha';
+            submitBtn.textContent = 'Criar Conta';
+            passInput.setAttribute('autocomplete', 'new-password');
+            switchHint.innerHTML = 'Já possui uma conta? <button type="button" class="auth-text-link" onclick="alternarModoAuth(\'login\')">Fazer login</button>';
         } else {
-            if (accountBar) accountBar.classList.add('hidden');
-            if (panel) panel.classList.remove('hidden');
-            if (status) status.textContent = 'Nenhuma conta conectada no momento.';
+            tabLogin.classList.add('active');
+            tabLogin.setAttribute('aria-selected', 'true');
+            tabSignup.classList.remove('active');
+            tabSignup.setAttribute('aria-selected', 'false');
+
+            nameGroup.classList.add('hidden');
+            confirmGroup.classList.add('hidden');
+            confirmInput.required = false;
+            confirmInput.value = '';
+            forgotRow.classList.remove('hidden');
+
+            subtitle.textContent = 'Entre na sua conta para acessar seus dados';
+            submitBtn.textContent = 'Entrar com E-mail';
+            passInput.setAttribute('autocomplete', 'current-password');
+            switchHint.innerHTML = 'Ainda não tem conta? <button type="button" class="auth-text-link" onclick="alternarModoAuth(\'signup\')">Criar conta agora</button>';
         }
     }
 
-    async function prepararLoginGoogle() {
-        if (!firebaseConfigPreenchida()) return;
+    function alternarVisibilidadeSenha(inputId) {
+        const inp = document.getElementById(inputId);
+        if (!inp) return;
+        inp.type = inp.type === 'password' ? 'text' : 'password';
+    }
+
+    function mostrarFeedbackAuth(texto, tipo = 'info') {
+        const box = document.getElementById('auth-feedback');
+        if (!box) return;
+        box.textContent = texto;
+        box.classList.remove('hidden', 'error', 'success');
+        if (tipo === 'error') box.classList.add('error');
+        if (tipo === 'success') box.classList.add('success');
+    }
+
+    function limparFeedbackAuth() {
+        const box = document.getElementById('auth-feedback');
+        if (box) box.classList.add('hidden');
+    }
+
+    function liberarAcessoApp(user) {
+        const authPage = document.getElementById('auth-page');
+        const appContainer = document.getElementById('app-container');
+        const greeting = document.getElementById('header-user-greeting');
+        const accountBar = document.getElementById('account_mini_bar');
+        const accountText = document.getElementById('account_mini_text');
+
+        if (authPage) authPage.classList.add('hidden');
+        if (appContainer) appContainer.classList.remove('hidden');
+
+        const identificador = user ? (user.displayName || user.email || 'Conta conectada') : 'Modo Prévia';
+        if (greeting) {
+            greeting.textContent = user
+                ? `Olá, ${identificador} • Cálculo de receita, gastos invisíveis e vendas`
+                : 'Modo Prévia • Cálculo de receita, gastos invisíveis e vendas';
+        }
+        if (accountText) accountText.textContent = identificador;
+        if (accountBar) accountBar.classList.remove('hidden');
+    }
+
+    function bloquearAcessoApp() {
+        const authPage = document.getElementById('auth-page');
+        const appContainer = document.getElementById('app-container');
+        const accountBar = document.getElementById('account_mini_bar');
+
+        if (appContainer) appContainer.classList.add('hidden');
+        if (authPage) authPage.classList.remove('hidden');
+        if (accountBar) accountBar.classList.add('hidden');
+    }
+
+    function entrarModoDemonstracao() {
+        liberarAcessoApp(null);
+        mostrarToast('Entrou no modo prévia do painel.');
+    }
+
+    function traduzirErroFirebaseAuth(code) {
+        const mapa = {
+            'auth/invalid-email': 'O endereço de e-mail digitado é inválido.',
+            'auth/user-disabled': 'Esta conta foi desativada.',
+            'auth/user-not-found': 'Nenhuma conta encontrada com este e-mail. Clique em "Criar Conta".',
+            'auth/wrong-password': 'Senha incorreta. Tente novamente ou clique em "Esqueci minha senha".',
+            'auth/invalid-credential': 'E-mail ou senha incorretos.',
+            'auth/email-already-in-use': 'Este e-mail já está cadastrado. Mude para a aba "Entrar".',
+            'auth/weak-password': 'A senha precisa ter pelo menos 6 caracteres.',
+            'auth/operation-not-allowed': 'Ative este método de login no Firebase Console (Authentication → Método de login).',
+            'auth/unauthorized-domain': 'Adicione este domínio em Firebase → Authentication → Configurações → Domínios autorizados.',
+            'auth/popup-blocked': 'O navegador bloqueou a janela do Google. Permita pop-ups para este site e tente de novo.',
+            'auth/popup-closed-by-user': 'A janela de login com o Google foi fechada antes de concluir.',
+            'auth/too-many-requests': 'Muitas tentativas seguidas. Aguarde alguns instantes e tente novamente.'
+        };
+        return mapa[code] || `Erro na autenticação (${code}).`;
+    }
+
+    async function prepararLoginFirebase() {
         try {
             if (!window.firebase) {
                 await new Promise((resolve, reject) => {
                     const script = document.createElement('script');
                     script.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js';
-                    script.onload = resolve; script.onerror = reject;
+                    script.onload = resolve;
+                    script.onerror = reject;
                     document.head.appendChild(script);
                 });
                 await new Promise((resolve, reject) => {
                     const script = document.createElement('script');
                     script.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
-                    script.onload = resolve; script.onerror = reject;
+                    script.onload = resolve;
+                    script.onerror = reject;
                     document.head.appendChild(script);
                 });
             }
-            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_AUTH_CONFIG);
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_AUTH_CONFIG);
+            }
             firebaseAuth = firebase.auth();
             await firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
             firebaseAuthDisponivel = true;
 
-            try {
-                const redirectResult = await firebaseAuth.getRedirectResult();
-                if (redirectResult && redirectResult.user) {
-                    aplicarEstadoVisualConta(redirectResult.user);
-                    mostrarToast('Login Google realizado com sucesso!');
+            firebaseAuth.onAuthStateChanged((user) => {
+                if (user) {
+                    liberarAcessoApp(user);
+                } else {
+                    bloquearAcessoApp();
                 }
-            } catch (redirectErr) {
-                console.warn('Retorno de redirecionamento:', redirectErr);
-            }
-
-            const ambienteSuportaAuth =
-                (window.location.protocol === 'http:' || window.location.protocol === 'https:') &&
-                !window.location.hostname.endsWith('.usercontent.goog');
-
-            const statusInicial = document.getElementById('login_status');
-            if (statusInicial && !firebaseAuth.currentUser) {
-                statusInicial.textContent = ambienteSuportaAuth
-                    ? 'Pronto para conectar com sua conta Google.'
-                    : 'Login Google indisponível nesta prévia isolada. Abra o site publicado em HTTPS para conectar.';
-            }
-
-            firebaseAuth.onAuthStateChanged(user => {
-                aplicarEstadoVisualConta(user);
             });
-        } catch (e) {
-            console.warn('Autenticação Google não inicializada neste ambiente:', e);
-            const status = document.getElementById('login_status');
-            if (status) status.textContent = 'Login Google indisponível neste ambiente de prévia. Use a versão publicada em HTTPS.';
+        } catch (err) {
+            console.warn('Firebase Auth indisponível neste ambiente:', err);
         }
     }
 
-    async function entrarComGoogle() {
-        const protocolValido = window.location.protocol === 'http:' || window.location.protocol === 'https:';
-        const isSandboxPreview = window.location.protocol === 'blob:' ||
-            window.location.hostname.endsWith('.usercontent.goog');
+    async function enviarFormularioEmail(event) {
+        event.preventDefault();
+        limparFeedbackAuth();
 
-        if (!protocolValido || isSandboxPreview) {
-            const msg = 'O login Google exige um domínio http/https fora de prévia em sandbox/blob. Abra o app publicado em HTTPS para entrar.';
-            const status = document.getElementById('login_status');
-            if (status) status.textContent = msg;
-            mostrarToast(msg, true);
+        const nome = (document.getElementById('auth_name').value || '').trim();
+        const email = (document.getElementById('auth_email').value || '').trim();
+        const senha = document.getElementById('auth_password').value || '';
+        const senhaConfirm = document.getElementById('auth_password_confirm').value || '';
+        const btn = document.getElementById('auth-submit-btn');
+
+        if (!email || !senha) {
+            mostrarFeedbackAuth('Preencha e-mail e senha para continuar.', 'error');
+            return;
+        }
+
+        if (modoAuthAtual === 'signup' && senha !== senhaConfirm) {
+            mostrarFeedbackAuth('As senhas digitadas não coincidem. Verifique e tente novamente.', 'error');
             return;
         }
 
         if (!firebaseAuthDisponivel || !firebaseAuth) {
-            mostrarToast('Configure as credenciais Web do Firebase no código para habilitar o login Google.', true);
+            mostrarFeedbackAuth('Neste ambiente isolado de prévia não há conexão com o servidor de login. Clique em "Testar painel sem login (modo prévia)" logo abaixo ou abra o link publicado em HTTPS.', 'error');
+            return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = modoAuthAtual === 'signup' ? 'Criando conta...' : 'Entrando...';
+
+        try {
+            if (modoAuthAtual === 'signup') {
+                const cred = await firebaseAuth.createUserWithEmailAndPassword(email, senha);
+                if (nome && cred.user) {
+                    await cred.user.updateProfile({ displayName: nome });
+                }
+                liberarAcessoApp(cred.user);
+                mostrarToast('Conta criada com sucesso!');
+            } else {
+                const cred = await firebaseAuth.signInWithEmailAndPassword(email, senha);
+                liberarAcessoApp(cred.user);
+                mostrarToast('Login realizado com sucesso!');
+            }
+        } catch (e) {
+            const msg = traduzirErroFirebaseAuth(e && e.code ? e.code : 'erro');
+            mostrarFeedbackAuth(msg, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = modoAuthAtual === 'signup' ? 'Criar Conta' : 'Entrar com E-mail';
+        }
+    }
+
+    async function recuperarSenha() {
+        limparFeedbackAuth();
+        const email = (document.getElementById('auth_email').value || '').trim();
+        if (!email) {
+            mostrarFeedbackAuth('Digite seu e-mail no campo acima primeiro para receber o link de redefinição de senha.', 'error');
+            return;
+        }
+        if (!firebaseAuthDisponivel || !firebaseAuth) {
+            mostrarFeedbackAuth('Disponível na versão publicada em HTTPS.', 'error');
+            return;
+        }
+        try {
+            await firebaseAuth.sendPasswordResetEmail(email);
+            mostrarFeedbackAuth(`Enviamos um e-mail de redefinição de senha para ${email}. Verifique sua caixa de entrada e spam.`, 'success');
+        } catch (e) {
+            mostrarFeedbackAuth(traduzirErroFirebaseAuth(e && e.code ? e.code : 'erro'), 'error');
+        }
+    }
+
+    async function entrarComGoogle() {
+        limparFeedbackAuth();
+        const protocolValido = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+        const isSandboxPreview = window.location.protocol === 'blob:' ||
+            window.location.hostname.endsWith('.usercontent.goog');
+
+        if (!protocolValido || isSandboxPreview || !firebaseAuthDisponivel || !firebaseAuth) {
+            mostrarFeedbackAuth('O login com Google precisa ser aberto no endereço HTTPS publicado do app (fora de prévias em sandbox). Aqui você pode clicar em "Testar painel sem login (modo prévia)".', 'error');
             return;
         }
 
         const provider = new firebase.auth.GoogleAuthProvider();
-        const isStandaloneOrMobile = window.matchMedia('(display-mode: standalone)').matches ||
-            /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
         try {
-            if (isStandaloneOrMobile) {
-                await firebaseAuth.signInWithRedirect(provider);
-                return;
-            }
+            // Usa signInWithPopup também no celular para evitar o erro "missing initial state"
             const cred = await firebaseAuth.signInWithPopup(provider);
-            aplicarEstadoVisualConta(cred && cred.user ? cred.user : firebaseAuth.currentUser);
+            liberarAcessoApp(cred && cred.user ? cred.user : firebaseAuth.currentUser);
             mostrarToast('Login Google realizado com sucesso!');
         } catch (e) {
             const codigo = e && e.code ? e.code : 'erro-desconhecido';
-            if (codigo === 'auth/operation-not-supported-in-this-environment') {
-                const msg = 'Este ambiente de prévia não suporta autenticação Google. Abra em um domínio HTTP/HTTPS padrão.';
-                const status = document.getElementById('login_status');
-                if (status) status.textContent = msg;
-                mostrarToast(msg, true);
-                return;
-            }
-            if (codigo === 'auth/popup-blocked' || codigo === 'auth/popup-closed-by-user' || codigo === 'auth/cancelled-popup-request') {
-                try {
-                    await firebaseAuth.signInWithRedirect(provider);
-                    return;
-                } catch (redirErr) {
-                    console.warn('Falha no redirecionamento de login:', redirErr);
-                }
-            }
-            const detalhe = e && e.message ? e.message : 'Sem detalhes adicionais.';
-            const status = document.getElementById('login_status');
-            let orientacao = '';
-            if (codigo === 'auth/unauthorized-domain') {
-                orientacao = ' Adicione o domínio deste site em Firebase → Authentication → Configurações → Domínios autorizados. Não funciona abrindo o HTML diretamente como arquivo local (file://).';
-            } else if (codigo === 'auth/operation-not-allowed') {
-                orientacao = ' Ative o provedor Google em Firebase → Authentication → Método de login.';
-            }
-            if (status) status.textContent = 'Erro no login (' + codigo + '): ' + detalhe + orientacao;
-            mostrarToast('Falha no login: ' + codigo, true);
+            mostrarFeedbackAuth(traduzirErroFirebaseAuth(codigo), 'error');
         }
     }
 
     async function sairDaConta() {
-        if (firebaseAuth) {
+        if (firebaseAuth && firebaseAuth.currentUser) {
             await firebaseAuth.signOut();
-            aplicarEstadoVisualConta(null);
-            mostrarToast('Você saiu da conta Google.');
         }
+        bloquearAcessoApp();
+        mostrarToast('Você saiu da conta.');
     }
 
-    // Protege textos inseridos pelo usuário quando são renderizados em HTML.
+    // =========================================================
+    // RESTANTE DO SISTEMA (CÁLCULOS, RECEITAS, INVISÍVEIS, NUVEM)
+    // =========================================================
     function escaparHTML(valor) {
-        return String(valor ?? '').replace(/[&<>\"']/g, caractere => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;'
+        return String(valor ?? '').replace(/[&<>"']/g, caractere => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
         }[caractere]));
     }
 
@@ -1509,9 +1952,7 @@
 
     function atualizarVisibilidadeBadgeTopo() {
         const badge = document.getElementById('save_status_badge');
-        if (badge) {
-            badge.classList.add('hidden');
-        }
+        if (badge) badge.classList.add('hidden');
     }
 
     function marcarPrimeiraSincronizacaoConcluida() {
@@ -1522,15 +1963,10 @@
 
     let badgeTimer = null;
     function indicarSalvo() {
-        const badge = document.getElementById('save_status_badge');
         const cfg = obterConfigNuvem();
         const miniText = document.getElementById('sync_mini_text');
         if (miniText && cfg.url && cfg.room) {
             miniText.textContent = 'Sincronizando...';
-        }
-        if (badge) {
-            badge.classList.add('hidden');
-            badge.classList.remove('saving');
         }
         clearTimeout(badgeTimer);
         badgeTimer = setTimeout(() => {
@@ -1601,15 +2037,15 @@
     function obterConfigNuvem() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY_CLOUD);
-            if (!raw) return { url: '', room: '' };
+            if (!raw) return { url: 'https://gestao-de-brownie-default-rtdb.firebaseio.com', room: '' };
             const parsed = JSON.parse(raw);
             const url = validarUrlHttp(parsed.url).replace(/\/+$/, '');
             return {
-                url: url.startsWith('https://') ? url : '',
+                url: url.startsWith('https://') ? url : 'https://gestao-de-brownie-default-rtdb.firebaseio.com',
                 room: (parsed.room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80)
             };
         } catch (e) {
-            return { url: '', room: '' };
+            return { url: 'https://gestao-de-brownie-default-rtdb.firebaseio.com', room: '' };
         }
     }
 
@@ -1619,14 +2055,9 @@
     }
 
     function atualizarStatusNuvemUI(statusTexto, conectado = false) {
-        const badge = document.getElementById('save_status_badge');
         const hint = document.getElementById('cloud_sync_hint');
         const miniText = document.getElementById('sync_mini_text');
         const miniDot = document.getElementById('sync_mini_dot');
-        if (badge) {
-            badge.classList.add('hidden');
-            atualizarVisibilidadeBadgeTopo();
-        }
         if (miniText) {
             if (conectado) {
                 miniText.textContent = 'Sincronizado';
@@ -1638,7 +2069,7 @@
         }
         if (hint && conectado) {
             const cfg = obterConfigNuvem();
-            hint.innerHTML = `✅ Conectado na sala <strong>${escaparHTML(cfg.room)}</strong>. Qualquer alteração salva e aparece automaticamente nos seus outros dispositivos.`;
+            hint.innerHTML = `✅ Conectado na sala <strong>${escaparHTML(cfg.room)}</strong>.`;
         }
     }
 
@@ -1647,7 +2078,7 @@
         const rawUrl = validarUrlHttp(urlInformada).replace(/\/+$/, '');
         const rawRoom = (document.getElementById('cloud_room_id').value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
         if (!rawUrl || !rawUrl.startsWith('https://') || !rawRoom) {
-            mostrarToast('Informe uma URL HTTPS válida do Firebase e um identificador de sala (até 80 caracteres).', true);
+            mostrarToast('Informe uma URL HTTPS válida do Firebase e um identificador de sala.', true);
             return;
         }
         localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify({ url: rawUrl, room: rawRoom }));
@@ -1713,7 +2144,6 @@
 
         localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(data));
         atualizarVisibilidadePainelNuvem();
-        abaAtivaAtual = 'tab-lucro';
         switchTab('tab-lucro', document.getElementById('btn-tab-lucro'), false);
         calcularGastosInvisiveis(false);
         calcularProporcao(false);
@@ -1726,7 +2156,7 @@
         const cfg = obterConfigNuvem();
         if (!cfg.url || !cfg.room) return;
         try {
-            atualizarStatusNuvemUI('☁️ Sincronizando com seus dispositivos...', true);
+            atualizarStatusNuvemUI('☁️ Sincronizando...', true);
             const resp = await fetch(`${cfg.url}/brownie_sync/${cfg.room}.json`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -1734,9 +2164,9 @@
             });
             if (!resp.ok) throw new Error('HTTP ' + resp.status);
             marcarPrimeiraSincronizacaoConcluida();
-            atualizarStatusNuvemUI('☁️ Tudo salvo e sincronizado em nuvem', true);
+            atualizarStatusNuvemUI('☁️ Sincronizado', true);
         } catch (err) {
-            atualizarStatusNuvemUI('☁️ Aguardando conexão com a nuvem', false);
+            atualizarStatusNuvemUI('☁️ Aguardando conexão', false);
         }
     }
 
@@ -1756,7 +2186,7 @@
                     mostrarToast('Seus dados locais foram enviados para a nuvem!');
                 }
                 marcarPrimeiraSincronizacaoConcluida();
-                atualizarStatusNuvemUI('☁️ Tudo salvo e sincronizado em nuvem', true);
+                atualizarStatusNuvemUI('☁️ Sincronizado', true);
             } else if (forcarEnvioSeVazio) {
                 await enviarParaNuvem(montarPayloadAtual());
                 mostrarToast('Sala criada! Dados enviados para a nuvem.');
@@ -1771,7 +2201,6 @@
     function salvarEstadoCompleto() {
         try {
             const payload = montarPayloadAtual();
-
             localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(payload));
             localStorage.setItem(STORAGE_KEY_COMPRAS, JSON.stringify(listaCompras));
             localStorage.setItem('brownie_contador_v1', JSON.stringify(contadorAtual));
@@ -1787,7 +2216,7 @@
             }
         } catch (e) {
             if (e && e.name === 'QuotaExceededError') {
-                mostrarToast("O arquivo PDF é grande demais para o armazenamento do navegador. Tente um PDF menor ou salve o link da receita.", true);
+                mostrarToast("O arquivo PDF é grande demais para o armazenamento do navegador.", true);
             } else {
                 mostrarToast('Não foi possível salvar no armazenamento local.', true);
             }
@@ -1888,17 +2317,13 @@
             return;
         }
 
-        if (file.size > 4 * 1024 * 1024) {
-            mostrarToast("PDF maior que 4 MB pode exceder o limite salvo do navegador.", true);
-        }
-
         const reader = new FileReader();
         reader.onload = function(evt) {
             receitaSalva.pdfNome = file.name;
             receitaSalva.pdfDataUrl = evt.target.result;
             renderReceitaSalva();
             salvarEstadoCompleto();
-            mostrarToast(`PDF "${file.name}" salvo na aba para quando for fazer o brownie!`);
+            mostrarToast(`PDF "${file.name}" salvo!`);
         };
         reader.readAsDataURL(file);
     }
@@ -1917,7 +2342,7 @@
         document.getElementById('rec_link_input').value = finalUrl;
         renderReceitaSalva();
         salvarEstadoCompleto();
-        mostrarToast("Link da receita salvo na aba!");
+        mostrarToast("Link da receita salvo!");
     }
 
     function removerPdfReceita() {
@@ -1927,7 +2352,6 @@
         if (inp) inp.value = '';
         renderReceitaSalva();
         salvarEstadoCompleto();
-        mostrarToast("PDF removido.");
     }
 
     function removerLinkReceita() {
@@ -1935,7 +2359,6 @@
         document.getElementById('rec_link_input').value = '';
         renderReceitaSalva();
         salvarEstadoCompleto();
-        mostrarToast("Link removido.");
     }
 
     let ultimoPdfBlobUrl = '';
@@ -1953,9 +2376,7 @@
                 ia[i] = byteString.charCodeAt(i);
             }
             const blob = new Blob([ab], { type: mime });
-            if (ultimoPdfBlobUrl) {
-                URL.revokeObjectURL(ultimoPdfBlobUrl);
-            }
+            if (ultimoPdfBlobUrl) URL.revokeObjectURL(ultimoPdfBlobUrl);
             ultimoPdfBlobUrl = URL.createObjectURL(blob);
             return ultimoPdfBlobUrl;
         } catch (e) {
@@ -1967,9 +2388,7 @@
         if (!receitaSalva.pdfDataUrl) return;
         const blobUrl = criarBlobUrlDoPdf(receitaSalva.pdfDataUrl);
         const win = window.open(blobUrl, '_blank');
-        if (!win) {
-            window.location.href = blobUrl;
-        }
+        if (!win) window.location.href = blobUrl;
     }
 
     function baixarParaEscolherLeitorPdf() {
@@ -1981,7 +2400,6 @@
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
-        mostrarToast('PDF enviado! Toque na notificação/arquivo para escolher o leitor de PDF.');
     }
 
     function renderReceitaSalva() {
@@ -2008,7 +2426,7 @@
                         <div class="helper-note">Pronto para abrir quando for preparar a massa e assar.</div>
                     </div>
                     <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button type="button" class="btn" style="margin-top:0;width:auto;padding:9px 14px;font-size:0.9rem;" onclick="abrirPdfEmNovaAba()">📄 Abrir PDF Direto</button>
+                        <button type="button" class="btn" style="margin-top:0;width:auto;padding:9px 14px;font-size:0.88rem;" onclick="abrirPdfEmNovaAba()">📄 Abrir PDF Direto</button>
                         <button type="button" class="btn-outline" style="margin-top:0;padding:8px 12px;" onclick="baixarParaEscolherLeitorPdf()">📲 Escolher Leitor de PDF</button>
                         <button type="button" class="btn-danger" onclick="removerPdfReceita()">Remover</button>
                     </div>
@@ -2033,7 +2451,7 @@
         }
 
         if (!html) {
-            html = `<p class="helper-note" style="margin:10px 0 0 0;">Nenhum PDF ou link salvo ainda. Selecione um arquivo PDF ou cole o link acima — ele ficará guardado aqui para suas próximas fornadas.</p>`;
+            html = `<p class="helper-note" style="margin:10px 0 0 0;">Nenhum PDF ou link salvo ainda. Selecione um arquivo PDF ou cole o link acima.</p>`;
         }
 
         container.innerHTML = html;
@@ -2120,7 +2538,7 @@
 
         const box = document.getElementById('res_gastos_invisiveis');
         box.innerHTML = `
-            <div style="font-size: 1.05rem; margin-bottom: 10px;">
+            <div style="font-size: 1.02rem; margin-bottom: 10px;">
                 👻 <strong>Resumo de Gastos Invisíveis Desta Fornada:</strong>
             </div>
             <div class="result-grid">
@@ -2140,9 +2558,6 @@
                     <div class="helper-note">Outros gastos (${extrasInvisiveis.length}): <strong>${formatBRL(totalExtras)}</strong></div>
                 </div>
             </div>
-            <div style="margin-top: 12px; font-size: 0.92rem;">
-                ✓ Esse valor de <strong>${formatBRL(totalInvisivel)}</strong> já está salvo na <strong>Aba 1</strong> para somar aos ingredientes que você preencher lá.
-            </div>
         `;
 
         calcularLucro(!precoVendaManual);
@@ -2157,7 +2572,7 @@
         document.getElementById('c_invisivel_real').value = estadoGlobal.totalInvisivelDetalhado.toFixed(2);
         aoEditarAba1();
         switchTab('tab-lucro', document.getElementById('btn-tab-lucro'));
-        mostrarToast(`Gastos invisíveis (${formatBRL(estadoGlobal.totalInvisivelDetalhado)}) salvos e somados na Aba 1!`);
+        mostrarToast(`Gastos invisíveis (${formatBRL(estadoGlobal.totalInvisivelDetalhado)}) salvos na Aba 1!`);
     }
 
     function calcularLucro(sincronizarPrecosVenda = true) {
@@ -2257,7 +2672,7 @@
                     <div>Lucro líquido/un.: <strong>${formatBRL(lucroM)}</strong></div>
                 </div>
             </div>
-            <div style="margin-top: 12px; font-size: 1.05rem;">
+            <div style="margin-top: 12px; font-size: 1.02rem;">
                 💰 <strong>Lucro líquido estimado vendendo a forma inteira:</strong> ${formatBRL(lucroForma)}
             </div>
         `;
@@ -2442,7 +2857,7 @@
 
         box.innerHTML = `
             <div>Opção A: <strong>R$ ${(cga * 100).toFixed(2)}</strong> a cada 100g | Opção B: <strong>R$ ${(cgb * 100).toFixed(2)}</strong> a cada 100g</div>
-            <div style="margin-top: 6px; font-size: 1.02rem;">${veredito}</div>
+            <div style="margin-top: 6px; font-size: 1rem;">${veredito}</div>
         `;
         if (salvar) salvarEstadoCompleto();
     }
@@ -2620,7 +3035,7 @@
                     <div class="result-box">
                         🎉 <strong>Investimento inicial de ${formatBRL(invest)} 100% PAGO!</strong>
                         <div class="progress-container"><div class="progress-bar" style="width: 100%;"></div></div>
-                        <div>Lucro livre no seu bolso (já descontando a compra inicial): <strong style="font-size: 1.15rem;">${formatBRL(sobraReal)}</strong></div>
+                        <div>Lucro livre no seu bolso: <strong style="font-size: 1.12rem;">${formatBRL(sobraReal)}</strong></div>
                     </div>
                 `;
             } else {
@@ -2643,9 +3058,9 @@
         renderVendas();
     }
 
-    prepararLoginGoogle();
+    // Inicializa autenticação e dados
+    prepararLoginFirebase();
 
-    // Inicialização restaurando dados salvos anteriormente
     const tinhaEstadoSalvo = carregarEstadoCompleto();
     switchTab(abaAtivaAtual, null, false);
     calcularGastosInvisiveis(false);
@@ -2658,7 +3073,6 @@
         salvarEstadoCompleto();
     }
 
-    // Inicializa configuração da nuvem e sincroniza automaticamente
     (function inicializarSincronizacaoAutomatica() {
         const cfg = obterConfigNuvem();
         const urlInput = document.getElementById('cloud_db_url');
@@ -2668,7 +3082,7 @@
         atualizarVisibilidadePainelNuvem();
 
         if (cfg.url && cfg.room) {
-            atualizarStatusNuvemUI('☁️ Sincronizando dados da nuvem...', true);
+            atualizarStatusNuvemUI('☁️ Sincronizando...', true);
             sincronizarDaNuvem(false);
             setInterval(() => {
                 if (!document.hidden) sincronizarDaNuvem(false);
@@ -2681,7 +3095,6 @@
 </script>
    
 <script>
-    // Registra e verifica atualizações do Service Worker em contexto seguro (HTTPS/localhost).
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', async () => {
             try {
