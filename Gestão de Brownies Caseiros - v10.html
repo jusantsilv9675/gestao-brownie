@@ -1,0 +1,3308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Gestão de Brownies Caseiros - v10</title>
+    
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4e2a1e">
+    <meta name="description" content="Gestão de receitas, custos, insumos, metas e vendas de brownies caseiros.">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Brownies">
+
+    <style>
+        /* Paleta temática de chocolate caseiro e superfícies claras */
+        :root {
+            color-scheme: light;
+            --bg: #fdf8f5;
+            --card: #ffffff;
+            --primary: #4e2a1e;
+            --primary-light: #7c4736;
+            --accent: #d97706;
+            --text: #2d1b15;
+            --muted: #6b534b;
+            --border: #e6d7d0;
+            --success-bg: #ecfdf5;
+            --success-text: #065f46;
+            --info-bg: #fffbeb;
+            --info-border: #fde68a;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        /* Tela de Carregamento Inicial (Splash Screen) minimalista e fofa */
+        #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background-color: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            transition: opacity 0.45s ease, visibility 0.45s ease;
+        }
+
+        #splash-screen.hidden-splash {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .splash-brownie-wrap {
+            width: min(64vw, 270px);
+            height: min(64vw, 270px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 18px 32px rgba(78, 42, 30, 0.16));
+            animation: splashCuteBreath 2.4s ease-in-out infinite;
+        }
+
+        .splash-brownie-wrap img,
+        .splash-brownie-wrap svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            border-radius: 36px;
+        }
+
+        @keyframes splashCuteBreath {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-7px) scale(1.03); }
+        }
+
+        /* =========================================================
+           PÁGINA DEDICADA DE LOGIN (#auth-page)
+           ========================================================= */
+        #auth-page {
+            min-height: calc(100vh - 40px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            animation: fadeInPage 0.35s ease;
+        }
+
+        @keyframes fadeInPage {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .auth-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            width: 100%;
+            max-width: 430px;
+            box-shadow: 0 12px 32px rgba(78, 42, 30, 0.08);
+            text-align: center;
+        }
+
+        .auth-logo-wrap {
+            width: 84px;
+            height: 84px;
+            margin: 0 auto 14px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 8px 16px rgba(78, 42, 30, 0.14));
+        }
+
+        .auth-logo-wrap img,
+        .auth-logo-wrap svg {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+        }
+
+        .auth-title {
+            margin: 0 0 6px 0;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .auth-subtitle {
+            margin: 0 0 20px 0;
+            font-size: 0.92rem;
+            color: var(--muted);
+        }
+
+        .auth-mode-tabs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 5px;
+            margin-bottom: 18px;
+        }
+
+        .auth-mode-btn {
+            border: none;
+            background: transparent;
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.94rem;
+            padding: 10px 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .auth-mode-btn:hover:not(.active) {
+            color: var(--primary);
+            background: rgba(78, 42, 30, 0.06);
+        }
+
+        .auth-mode-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(78, 42, 30, 0.22);
+        }
+
+        .auth-switch-hint {
+            margin-top: 12px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .auth-form {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .password-input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-input-wrap input {
+            width: 100%;
+            padding-right: 44px;
+        }
+
+        .toggle-pass-btn {
+            position: absolute;
+            right: 8px;
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 1.05rem;
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .toggle-pass-btn:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .auth-forgot-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -6px;
+        }
+
+        .auth-link-btn {
+            background: none;
+            border: none;
+            color: var(--primary-light);
+            font-size: 0.83rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 2px 0;
+            text-decoration: underline;
+        }
+
+        .auth-link-btn:hover {
+            color: var(--primary);
+        }
+
+        .auth-submit-btn {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 13px 18px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 2px;
+            transition: background 0.2s, transform 0.08s;
+        }
+
+        .auth-submit-btn:hover {
+            background: var(--primary-light);
+        }
+
+        .auth-submit-btn:active {
+            transform: scale(0.99);
+        }
+
+        .auth-submit-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            color: var(--muted);
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .google-login-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: #ffffff;
+            color: var(--primary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.08s;
+        }
+
+        .google-login-btn:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        .google-login-btn:active {
+            transform: scale(0.99);
+        }
+
+        .google-login-btn:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        .auth-feedback {
+            margin-top: 14px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            text-align: left;
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            color: #92400e;
+        }
+
+        .auth-feedback.error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .auth-feedback.success {
+            background: var(--success-bg);
+            border-color: #a7f3d0;
+            color: var(--success-text);
+        }
+
+        .auth-preview-footer {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .preview-bypass-btn {
+            background: none;
+            border: 1px dashed var(--border);
+            color: var(--muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .preview-bypass-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--bg);
+        }
+
+        /* =========================================================
+           CONTAINER PRINCIPAL DO APLICATIVO (#app-container)
+           ========================================================= */
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            animation: fadeInPage 0.35s ease;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: var(--primary);
+            color: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(78, 42, 30, 0.15);
+            position: relative;
+        }
+
+        header h1 {
+            margin: 0 0 6px 0;
+            font-size: 1.6rem;
+            color: #ffffff;
+        }
+
+        header p {
+            margin: 0;
+            font-size: 0.95rem;
+            color: #ffffff;
+            opacity: 0.92;
+        }
+
+        .header-actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .header-replay-btn {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .header-replay-btn:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        /* Selo de status integrado à paleta principal */
+        .save-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+            padding: 4px 12px;
+            border-radius: 999px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary);
+            transition: all 0.25s ease;
+        }
+
+        .save-badge.saving {
+            background: var(--info-bg);
+            border-color: var(--info-border);
+            color: var(--accent);
+        }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            min-width: 170px;
+            padding: 12px 10px;
+            border: 2px solid var(--primary);
+            background: #ffffff;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--bg);
+            padding-bottom: 8px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.88rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--muted);
+        }
+
+        input, select, textarea {
+            background: #ffffff;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.98rem;
+            color: var(--text);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 75px;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(78, 42, 30, 0.12);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 14px;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--primary-light);
+        }
+
+        .btn-secondary {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background: #b45309;
+        }
+
+        .btn-danger {
+            background: #dc2626;
+            color: #ffffff;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            width: auto;
+            margin-top: 0;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-outline {
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 10px 16px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            width: auto;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-outline:hover {
+            background: var(--bg);
+        }
+
+        .chip-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 14px 0;
+        }
+
+        .chip-btn {
+            background: var(--info-bg);
+            border: 1px solid var(--info-border);
+            color: #92400e;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.84rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .chip-btn:hover {
+            background: #fef3c7;
+            border-color: #f59e0b;
+        }
+
+        .result-box {
+            background: var(--success-bg);
+            border: 1px solid #a7f3d0;
+            color: var(--success-text);
+            padding: 16px;
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+
+        .recipe-vault-card {
+            background: #fdf8f5;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .recipe-item-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-top: 10px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .price-card {
+            background: #ffffff;
+            border: 1px solid #a7f3d0;
+            color: var(--text);
+            padding: 14px;
+            border-radius: 8px;
+        }
+
+        .price-card h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary);
+            font-size: 1.02rem;
+        }
+
+        .price-highlight {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #047857;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 14px;
+            font-size: 0.92rem;
+            background: #ffffff;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        th {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .helper-note {
+            font-size: 0.84rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        .progress-container {
+            background: #e6d7d0;
+            border-radius: 999px;
+            height: 16px;
+            width: 100%;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .progress-bar {
+            background: #059669;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .counter-box {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .counter-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .counter-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+        }
+
+        .counter-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .counter-label-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .counter-size {
+            font-size: 1.08rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .counter-subprice {
+            font-size: 0.85rem;
+            color: var(--muted);
+        }
+
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .btn-step {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1.5rem;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            transition: transform 0.08s, background 0.15s;
+        }
+
+        .btn-step:active {
+            transform: scale(0.93);
+        }
+
+        .btn-minus {
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-minus:hover {
+            background: var(--bg);
+        }
+
+        .btn-plus {
+            background: var(--primary);
+            color: #ffffff;
+        }
+
+        .btn-plus:hover {
+            background: var(--primary-light);
+        }
+
+        .counter-value {
+            min-width: 44px;
+            text-align: center;
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 22px;
+            right: 22px;
+            background: var(--primary);
+            color: #ffffff;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+            z-index: 9999;
+            opacity: 0;
+            transform: translateY(14px);
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: #b91c1c;
+        }
+
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(45, 27, 21, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 10000;
+        }
+
+        .modal-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 22px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+        }
+
+        .modal-card h3 {
+            margin: 0 0 8px 0;
+            color: var(--primary);
+            font-size: 1.15rem;
+        }
+
+        .modal-card p {
+            margin: 0 0 18px 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .footer-bar {
+            text-align: center;
+            margin-top: 24px;
+            padding-bottom: 12px;
+            font-size: 0.85rem;
+            color: var(--muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer-mini-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .sync-mini-bar {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 0.78rem;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(78, 42, 30, 0.04);
+        }
+
+        .sync-mini-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .sync-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            flex-shrink: 0;
+        }
+
+        .sync-dot.offline {
+            background: var(--accent);
+        }
+
+        .sync-mini-link {
+            background: none;
+            border: none;
+            color: var(--muted);
+            font-size: 0.75rem;
+            text-decoration: underline;
+            cursor: pointer;
+            padding: 0 2px;
+            opacity: 0.8;
+        }
+
+        .sync-mini-link:hover {
+            color: var(--primary);
+            opacity: 1;
+        }
+
+        .badge-mode {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            margin-left: 6px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 12px;
+            }
+            .auth-card {
+                padding: 24px 18px;
+            }
+            .card {
+                padding: 16px;
+            }
+            .tab-btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- TELA DE CARREGAMENTO INICIAL (SPLASH SCREEN) MINIMALISTA E FOFA -->
+<div id="splash-screen" role="status" aria-label="Carregando">
+    <div class="splash-brownie-wrap">
+        <img id="splash-icon-img" src="./icon-512.png" alt="Brownie Caseiro"
+             onerror="this.classList.add('hidden'); document.getElementById('splash-icon-svg').classList.remove('hidden');">
+        <svg id="splash-icon-svg" class="hidden" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-label="Brownie Caseiro com Cobertura">
+            <defs>
+                <linearGradient id="brownieBodyGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#7c422c"/>
+                    <stop offset="68%" stop-color="#61301e"/>
+                    <stop offset="100%" stop-color="#451f12"/>
+                </linearGradient>
+                <linearGradient id="brownieFrontGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#532717"/>
+                    <stop offset="100%" stop-color="#3a190d"/>
+                </linearGradient>
+                <linearGradient id="creamSwirlGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="65%" stop-color="#fff4eb"/>
+                    <stop offset="100%" stop-color="#eed7c5"/>
+                </linearGradient>
+            </defs>
+            <rect x="24" y="42" width="192" height="172" rx="34" fill="url(#brownieFrontGrad)" stroke="#35160b" stroke-width="4"/>
+            <path d="M26 155 Q52 170 76 156 T128 160 T178 154 Q198 164 214 152 L214 182 Q214 212 182 212 L58 212 Q26 212 26 182 Z" fill="#3a180c" opacity="0.72"/>
+            <rect x="24" y="28" width="192" height="148" rx="34" fill="url(#brownieBodyGrad)" stroke="#3b190d" stroke-width="3.5"/>
+            <path d="M44 54 Q46 38 66 36" fill="none" stroke="#a66448" stroke-width="4" stroke-linecap="round" opacity="0.7"/>
+            <path d="M56 66 C42 66 42 46 66 46 C100 46 136 32 146 46 C156 60 82 88 64 106 C46 124 62 138 94 122 C126 106 174 58 190 74 C204 88 122 132 106 148 C92 162 114 172 144 156 C170 142 194 114 198 130 C202 144 176 164 166 168"
+                  fill="none" stroke="#421d10" stroke-width="26" stroke-linecap="round" stroke-linejoin="round" opacity="0.28"/>
+            <path d="M56 62 C42 62 42 42 66 42 C100 42 136 28 146 42 C156 56 82 84 64 102 C46 120 62 134 94 118 C126 102 174 54 190 70 C204 84 122 128 106 144 C92 158 114 168 144 152 C170 138 194 110 198 126 C202 140 176 160 166 164"
+                  fill="none" stroke="url(#creamSwirlGrad)" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M46 44 L54 56 Q46 60 38 56 Z" fill="#2c1208"/>
+            <path d="M188 42 L196 54 Q188 58 180 54 Z" fill="#2c1208"/>
+            <path d="M96 54 L104 66 Q96 70 88 66 Z" fill="#2c1208"/>
+            <path d="M164 76 L172 88 Q164 92 156 88 Z" fill="#2c1208"/>
+            <path d="M84 104 L92 116 Q84 120 76 116 Z" fill="#2c1208"/>
+            <path d="M138 102 L145 113 Q138 116 131 113 Z" fill="#2c1208"/>
+            <path d="M168 134 L176 146 Q168 150 160 146 Z" fill="#2c1208"/>
+            <path d="M48 144 L56 156 Q48 160 40 156 Z" fill="#2c1208"/>
+            <path d="M192 144 L200 156 Q192 160 184 156 Z" fill="#2c1208"/>
+        </svg>
+    </div>
+</div>
+
+<!-- =========================================================================
+     1. PÁGINA DEDICADA DE LOGIN (#auth-page)
+     ========================================================================= -->
+<main id="auth-page" aria-label="Tela de Login">
+    <div class="auth-card">
+        <div class="auth-logo-wrap">
+            <img src="./icon-192.png" alt="Logo Brownie"
+                 onerror="this.classList.add('hidden'); document.getElementById('auth-logo-svg').classList.remove('hidden');">
+            <svg id="auth-logo-svg" class="hidden" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <rect x="24" y="42" width="192" height="172" rx="34" fill="#3a190d" stroke="#35160b" stroke-width="4"/>
+                <rect x="24" y="28" width="192" height="148" rx="34" fill="#683522" stroke="#3b190d" stroke-width="3.5"/>
+                <path d="M56 62 C42 62 42 42 66 42 C100 42 136 28 146 42 C156 56 82 84 64 102 C46 120 62 134 94 118 C126 102 174 54 190 70 C204 84 122 128 106 144 C92 158 114 168 144 152 C170 138 194 110 198 126 C202 140 176 160 166 164"
+                      fill="none" stroke="#fff7f0" stroke-width="23" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M46 44 L54 56 Q46 60 38 56 Z" fill="#2c1208"/>
+                <path d="M188 42 L196 54 Q188 58 180 54 Z" fill="#2c1208"/>
+                <path d="M96 54 L104 66 Q96 70 88 66 Z" fill="#2c1208"/>
+                <path d="M164 76 L172 88 Q164 92 156 88 Z" fill="#2c1208"/>
+                <path d="M84 104 L92 116 Q84 120 76 116 Z" fill="#2c1208"/>
+                <path d="M168 134 L176 146 Q168 150 160 146 Z" fill="#2c1208"/>
+            </svg>
+        </div>
+
+        <h1 class="auth-title">Gestão de Brownies Caseiros</h1>
+        <p class="auth-subtitle" id="auth_subtitle">Entre com sua conta para acessar suas receitas, custos e vendas.</p>
+
+        <!-- Abas explícitas: Entrar / Criar Conta -->
+        <div class="auth-mode-tabs" role="tablist">
+            <button type="button" id="tab-auth-login" class="auth-mode-btn active" role="tab" aria-selected="true" onclick="alternarModoAuth('login')">🔑 Entrar</button>
+            <button type="button" id="tab-auth-register" class="auth-mode-btn" role="tab" aria-selected="false" onclick="alternarModoAuth('register')">✨ Criar Conta</button>
+        </div>
+
+        <!-- Formulário de E-mail e Senha -->
+        <form id="auth-email-form" class="auth-form" onsubmit="enviarFormularioEmailSenha(event)">
+            <div class="form-group hidden" id="auth_name_group">
+                <label for="auth_name">Seu nome ou nome do ateliê (opcional)</label>
+                <input type="text" id="auth_name" placeholder="Ex: Brownies da Júlia" autocomplete="name">
+            </div>
+
+            <div class="form-group">
+                <label for="auth_email">E-mail</label>
+                <input type="email" id="auth_email" placeholder="seuemail@exemplo.com" autocomplete="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="auth_password">Senha</label>
+                <div class="password-input-wrap">
+                    <input type="password" id="auth_password" placeholder="Digite sua senha (mín. 6 caracteres)" autocomplete="current-password" minlength="6" required>
+                    <button type="button" class="toggle-pass-btn" id="btn_toggle_pass" title="Mostrar ou ocultar senha" aria-label="Mostrar ou ocultar senha" onclick="alternarVisibilidadeSenha('auth_password', 'btn_toggle_pass')">👁️</button>
+                </div>
+            </div>
+
+            <div class="form-group hidden" id="auth_confirm_group">
+                <label for="auth_password_confirm">Confirmar senha</label>
+                <div class="password-input-wrap">
+                    <input type="password" id="auth_password_confirm" placeholder="Repita sua senha" autocomplete="new-password" minlength="6">
+                    <button type="button" class="toggle-pass-btn" id="btn_toggle_pass_confirm" title="Mostrar ou ocultar confirmação de senha" aria-label="Mostrar ou ocultar confirmação de senha" onclick="alternarVisibilidadeSenha('auth_password_confirm', 'btn_toggle_pass_confirm')">👁️</button>
+                </div>
+            </div>
+
+            <div class="auth-forgot-row" id="auth_forgot_row">
+                <button type="button" class="auth-link-btn" onclick="recuperarSenhaEmail()">Esqueci minha senha</button>
+            </div>
+
+            <button type="submit" id="btn_auth_submit" class="auth-submit-btn">Entrar na conta</button>
+        </form>
+
+        <!-- Links rápidos abaixo do formulário para alternar entre Entrar e Criar Conta -->
+        <div class="auth-switch-hint" id="auth_switch_to_register">
+            Não tem conta? <button type="button" class="auth-link-btn" onclick="alternarModoAuth('register')">Criar conta agora</button>
+        </div>
+        <div class="auth-switch-hint hidden" id="auth_switch_to_login">
+            Já tem conta? <button type="button" class="auth-link-btn" onclick="alternarModoAuth('login')">Fazer login</button>
+        </div>
+
+        <div class="auth-divider">ou</div>
+
+        <!-- Botão de Login com Google -->
+        <button type="button" id="btn_google_login" class="google-login-btn" onclick="entrarComGoogle()">
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Continuar com Google
+        </button>
+
+        <!-- Área de mensagens de status/erro do login -->
+        <div id="login_status" class="auth-feedback hidden" role="alert"></div>
+
+        <!-- Opção discreta para prévia em sandbox isolado -->
+        <div class="auth-preview-footer" id="preview_bypass_box">
+            <button type="button" class="preview-bypass-btn" onclick="simularLoginPrevia()">Testar sem login (modo prévia)</button>
+            <span class="helper-note" style="font-size: 0.76rem; margin-top: 0;">No site publicado em HTTPS, o login libera automaticamente o painel.</span>
+        </div>
+    </div>
+</main>
+
+<!-- =========================================================================
+     2. APLICATIVO PRINCIPAL (#app-container - oculto até autenticar)
+     ========================================================================= -->
+<div id="app-container" class="container hidden">
+
+    <!-- Cabeçalho principal e indicador de salvamento/sincronização -->
+    <header>
+        <h1>🍫 Gestão de Brownies Caseiros</h1>
+        <p>Cálculo completo de receita, gastos invisíveis, metas e vendas</p>
+        <div class="header-actions-row">
+            <button type="button" class="header-replay-btn" onclick="exibirSplashScreen(1400)">↻ Rever tela de abertura</button>
+            <button type="button" class="header-replay-btn" onclick="sairDaConta()">🚪 Sair da conta</button>
+        </div>
+        <div id="save_status_badge" class="save-badge hidden"></div>
+    </header>
+
+    <!-- Painel de Sincronização Automática em Nuvem (Firebase Realtime Database REST API) -->
+    <div id="cloud_panel_card" class="card" style="padding: 14px 18px; margin-bottom: 16px; background: #fffbeb; border-color: #fde68a;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+            <div>
+                <strong style="color: var(--primary); font-size: 0.96rem;">☁️ Sincronização Automática Entre Dispositivos</strong>
+                <div class="helper-note" id="cloud_sync_hint" style="margin-top: 2px;">
+                    Configure uma vez a URL do <strong>Firebase Realtime Database</strong> e o identificador da sala. A configuração fica salva neste navegador e é incluída nos dados sincronizados. Para um aparelho novo descobrir a nuvem no primeiro acesso, ele precisa receber o mesmo endereço de conexão por configuração inicial ou por uma versão publicada do app já configurada.
+                </div>
+            </div>
+            <button type="button" class="btn-outline" style="margin-top: 0; padding: 7px 12px; font-size: 0.84rem;" onclick="toggleCloudConfig()">⚙️ Configurar Nuvem</button>
+        </div>
+
+        <div id="cloud_config_box" class="hidden" style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #fcd34d;">
+            <div class="grid-3">
+                <div class="form-group">
+                    <label>URL do Firebase Realtime Database</label>
+                    <input type="url" id="cloud_db_url" placeholder="https://gestao-de-brownie-default-rtdb.firebaseio.com">
+                </div>
+                <div class="form-group">
+                    <label>Identificador da sala (use o mesmo nos aparelhos)</label>
+                    <input type="text" id="cloud_room_id" placeholder="Ex: julia-brownies-2026">
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button type="button" class="btn" style="margin-top: 0; padding: 10px 14px; font-size: 0.9rem;" onclick="conectarNuvem()">Conectar & Sincronizar Agora</button>
+                </div>
+            </div>
+            <div class="helper-note" style="margin-top: 8px;">
+                💡 <strong>Configuração:</strong> crie um Realtime Database no Firebase e informe a URL. Configure as <strong>regras de segurança</strong> antes de inserir dados reais. O identificador da sala apenas separa os dados; <strong>não é uma senha nem substitui autenticação</strong>. Para que instalações novas descubram a nuvem automaticamente, publique o app com o mesmo endpoint pré-configurado. Evite regras públicas ou modo teste em produção.
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação das 5 abas -->
+    <div class="tabs">
+        <button type="button" id="btn-tab-lucro" class="tab-btn active" onclick="switchTab('tab-lucro', this)">1. 💵 Custos & Margem</button>
+        <button type="button" id="btn-tab-receita" class="tab-btn" onclick="switchTab('tab-receita', this)">2. 🍫 Receita & Invisíveis</button>
+        <button type="button" id="btn-tab-insumos" class="tab-btn" onclick="switchTab('tab-insumos', this)">3. 🛒 Insumos & Compras</button>
+        <button type="button" id="btn-tab-metas" class="tab-btn" onclick="switchTab('tab-metas', this)">4. 🎯 Metas & Comparador</button>
+        <button type="button" id="btn-tab-vendas" class="tab-btn" onclick="switchTab('tab-vendas', this)">5. 💰 Controle de Vendas</button>
+    </div>
+
+    <!-- ABA 1: CUSTOS & MARGEM -->
+    <div id="tab-lucro">
+        <div class="card">
+            <h2>1. Custo dos Ingredientes Usados na Receita</h2>
+            <p class="helper-note">Preencha os ingredientes da fornada aqui na Aba 1. Os <strong>Gastos Invisíveis</strong> (tempo, luz e gás) calculados na Aba 2 são somados automaticamente ao que já está aqui.</p>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Ovos usados na receita (R$)</label>
+                    <input type="number" id="c_ovos" step="0.01" value="3.00" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Açúcar usado na receita (R$)</label>
+                    <input type="number" id="c_acucar" step="0.01" value="1.50" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Margarina usada na receita (R$)</label>
+                    <input type="number" id="c_margarina" step="0.01" value="6.50" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Achocolatado usado na receita (R$)</label>
+                    <input type="number" id="c_achocolatado" step="0.01" value="4.80" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Farinha de Trigo usada (R$)</label>
+                    <input type="number" id="c_farinha" step="0.01" value="1.00" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Extras da receita (gotas, nozes, etc.) (R$)</label>
+                    <input type="number" id="c_extras" step="0.01" value="0.00" oninput="aoEditarAba1()">
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 14px;">
+                <div class="form-group">
+                    <label>Modo de cálculo dos Gastos Invisíveis</label>
+                    <select id="modo_invisivel" onchange="aoEditarAba1()">
+                        <option value="detalhado" selected>Usar Valor Real Calculado na Aba 2 (Tempo + Luz + Gás)</option>
+                        <option value="percentual">Porcentagem (%) sobre ingredientes</option>
+                    </select>
+                </div>
+                <div class="form-group" id="grupo_valor_detalhado">
+                    <label>Gastos invisíveis reais da fornada (Aba 2)</label>
+                    <input type="number" id="c_invisivel_real" step="0.01" value="0.00" readonly style="background: #f3f4f6; font-weight: 700;">
+                </div>
+                <div class="form-group hidden" id="grupo_taxa_percentual">
+                    <label>Custos invisíveis (% gás/luz/perdas)</label>
+                    <input type="number" id="c_taxa" step="1" value="25" oninput="aoEditarAba1()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. Rendimento, Embalagem e Multiplicador</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Qtd. de pedaços PEQUENOS na forma</label>
+                    <input type="number" id="qtd_p" step="1" value="10" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Qtd. de pedaços MÉDIOS na forma (1,5x o P)</label>
+                    <input type="number" id="qtd_m" step="1" value="6" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Custo da embalagem por unidade (R$)</label>
+                    <input type="number" id="c_emb" step="0.01" value="0.25" oninput="aoEditarAba1()">
+                </div>
+                <div class="form-group">
+                    <label>Multiplicador de Lucro (Ex: 2.5 ou 3.0)</label>
+                    <input type="number" id="mult_lucro" step="0.1" value="2.5" oninput="aoEditarAba1()">
+                </div>
+            </div>
+
+            <div class="result-box" id="res_lucro"></div>
+        </div>
+    </div>
+
+    <!-- ABA 2: RECEITA & INVISÍVEIS -->
+    <div id="tab-receita" class="hidden">
+        <div class="card">
+            <h2>1. Receita Salva (PDF ou Link da Receita)</h2>
+            <p class="helper-note">Anexe o <strong>PDF</strong> da receita ou salve o <strong>Link</strong> com ingredientes, modo de preparo, temperatura do fogão e tempo de bater/assar para abrir na hora que for fazer o brownie.</p>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Nome / Identificação da Receita</label>
+                    <input type="text" id="rec_titulo" placeholder="Ex: Brownie Tradicional Casquinha Brilhante" oninput="salvarEstadoCompleto()">
+                </div>
+                <div class="form-group">
+                    <label>Temperatura do fogão / forno (ex: 180°C)</label>
+                    <input type="text" id="rec_temperatura" placeholder="Ex: 180°C (pré-aquecer 10 min)" oninput="calcularGastosInvisiveis(true)">
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 14px;">
+                <div class="form-group">
+                    <label>Anexar arquivo PDF da receita (fica salvo nesta aba)</label>
+                    <input type="file" id="rec_pdf_input" accept="application/pdf,.pdf" onchange="salvarPdfReceita(this)">
+                    <span class="helper-note">O PDF é salvo localmente no navegador para você abrir quando for fazer o brownie.</span>
+                </div>
+                <div class="form-group">
+                    <label>Ou adicionar Link da receita (YouTube, blog, Drive, etc.)</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <input type="url" id="rec_link_input" placeholder="https://..." style="flex: 1; min-width: 180px;">
+                        <button type="button" class="btn-outline" style="margin-top: 0;" onclick="salvarLinkReceita()">Salvar Link</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recipe-vault-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <strong style="color: var(--primary); font-size: 1rem;">📂 Receita Salva para Consulta na Hora do Preparo</strong>
+                    <span id="rec_resumo_rapido" class="badge-mode">Fogão: 180°C • Bater: 10 min • Assar: 30 min</span>
+                </div>
+                <div id="receita_salva_container"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. Cálculo de Gastos Invisíveis: Tempo, Luz e Gás</h2>
+            <p class="helper-note">Calcule quanto você gasta com <strong>tempo</strong> (bater massa, assar e preparo), <strong>gás</strong> e <strong>energia elétrica</strong> em uma fornada. O valor total é salvo automaticamente na <strong>Aba 1</strong>.</p>
+
+            <h3 style="font-size: 1rem; color: var(--primary); margin: 14px 0 8px 0;">⏱️ A) Tempo Gasto (Bater Massa, Assar e Preparo)</h3>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label>Tempo para bater a massa (minutos)</label>
+                    <input type="number" id="inv_tempo_bater" step="1" value="10" oninput="calcularGastosInvisiveis(true)">
+                </div>
+                <div class="form-group">
+                    <label>Tempo para assar no forno (minutos)</label>
+                    <input type="number" id="inv_tempo_assar" step="1" value="30" oninput="calcularGastosInvisiveis(true)">
+                </div>
+                <div class="form-group">
+                    <label>Tempo extra / embalar (min)</label>
+                    <input type="number" id="inv_mao_minutos" step="5" value="15" oninput="calcularGastosInvisiveis(true)">
+                    <span class="helper-note">Separar ingredientes, cortar, embalar e lavar louça</span>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-top: 12px;">
+                <div class="form-group">
+                    <label>Quanto vale sua hora de trabalho? (R$/h)</label>
+                    <input type="number" id="inv_mao_valor_hora" step="0.50" value="12.00" oninput="calcularGastosInvisiveis(true)">
+                    <span class="helper-note">Aplicado sobre o tempo total gasto (bater + assar + preparo)</span>
+                </div>
+                <div class="form-group">
+                    <label>Incluir custo de tempo no gasto invisível?</label>
+                    <select id="inv_mao_incluir" onchange="calcularGastosInvisiveis(true)">
+                        <option value="sim" selected>Sim, somar tempo gasto nos gastos invisíveis</option>
+                        <option value="nao">Não somar tempo (calcular apenas gás, luz e extras)</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 style="font-size: 1rem; color: var(--primary); margin: 18px 0 8px 0;">🔥 B) Gás de Cozinha (Forno)</h3>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label>Preço do botijão P13 (13kg) (R$)</label>
+                    <input type="number" id="inv_gas_preco" step="0.01" value="115.00" oninput="calcularGastosInvisiveis(true)">
+                </div>
+                <div class="form-group">
+                    <label>Minutos de forno ligado (gás)</label>
+                    <input type="number" id="inv_gas_minutos" step="1" value="35" oninput="calcularGastosInvisiveis(true)">
+                    <span class="helper-note">Inclua pré-aquecimento + tempo de forno a gás</span>
+                </div>
+                <div class="form-group">
+                    <label>Consumo do forno (kg/hora)</label>
+                    <select id="inv_gas_consumo" onchange="calcularGastosInvisiveis(true)">
+                        <option value="0.12">Forno doméstico baixo (~0,12 kg/h)</option>
+                        <option value="0.18" selected>Forno doméstico médio (~0,18 kg/h - Padrão)</option>
+                        <option value="0.25">Forno doméstico alto (~0,25 kg/h)</option>
+                        <option value="0.45">Forno semi-industrial (~0,45 kg/h)</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3 style="font-size: 1rem; color: var(--primary); margin: 18px 0 8px 0;">⚡ C) Energia Elétrica (Batedeira / Forno Elétrico / Luz)</h3>
+            <div class="grid-3">
+                <div class="form-group">
+                    <label>Tarifa de energia (R$/kWh)</label>
+                    <input type="number" id="inv_luz_tarifa" step="0.01" value="0.92" oninput="calcularGastosInvisiveis(true)">
+                    <span class="helper-note">Média Brasil/SP com impostos: R$ 0,85 a R$ 0,98</span>
+                </div>
+                <div class="form-group">
+                    <label>Potência dos aparelhos (Watts)</label>
+                    <select id="inv_luz_potencia" onchange="calcularGastosInvisiveis(true)">
+                        <option value="350" selected>Batedeira + Luz cozinha (~350W - Forno a gás)</option>
+                        <option value="600">Batedeira Planetária + Micro-ondas (~600W)</option>
+                        <option value="1800">Forno Elétrico Pequeno (~1800W)</option>
+                        <option value="2500">Forno Elétrico Médio/Grande (~2500W)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Tempo de uso elétrico (minutos)</label>
+                    <input type="number" id="inv_luz_minutos" step="1" value="15" oninput="calcularGastosInvisiveis(true)">
+                </div>
+            </div>
+
+            <h3 style="font-size: 1rem; color: var(--primary); margin: 18px 0 8px 0;">💡 D) Outros Gastos Invisíveis Pontuais (Opcional)</h3>
+            <p class="helper-note">Adicione outros gastos invisíveis da fornada se precisar:</p>
+            <div class="chip-container">
+                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Água e detergente (lavar louça/forma)', 0.65)">+ Água e detergente (R$ 0,65)</button>
+                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Papel manteiga / desmoldante para forma', 0.85)">+ Papel manteiga / untar (R$ 0,85)</button>
+                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Etiqueta adesiva / lacre / fita', 1.20)">+ Etiquetas e lacres (R$ 1,20)</button>
+                <button type="button" class="chip-btn" onclick="adicionarSugestaoInvisivel('Taxa maquininha / Pix / Sacolinha', 1.50)">+ Taxa maquininha / sacola (R$ 1,50)</button>
+            </div>
+
+            <div class="grid-3">
+                <div class="form-group">
+                    <label>Outro gasto invisível (Descrição)</label>
+                    <input type="text" id="inv_extra_nome" placeholder="Ex: Papel toalha / esponja">
+                </div>
+                <div class="form-group">
+                    <label>Custo por fornada (R$)</label>
+                    <input type="number" id="inv_extra_valor" step="0.05" placeholder="0.50">
+                </div>
+                <div class="form-group" style="justify-content: flex-end;">
+                    <button type="button" class="btn btn-outline" style="margin-top: 0; width: 100%;" onclick="adicionarExtraInvisivelManual()">+ Adicionar Gasto</button>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Gasto Invisível Extra</th>
+                        <th>Custo por Fornada</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tabela_invisiveis_extras_body"></tbody>
+            </table>
+
+            <div class="result-box" id="res_gastos_invisiveis"></div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px;">
+                <button type="button" class="btn" style="flex: 1; min-width: 240px;" onclick="enviarInvisiveisParaAba1()">✅ Salvar Gastos Invisíveis na Aba 1 e Ir para Custos</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 3: INSUMOS & COMPRAS -->
+    <div id="tab-insumos" class="hidden">
+        <div class="card">
+            <h2>1. Calculadora de Custo Proporcional na Receita</h2>
+            <p class="helper-note">Escolha um ingrediente e calcule quanto custa apenas a parte usada na fornada.</p>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Ingrediente</label>
+                    <select id="ing_nome" onchange="calcularProporcao(true)">
+                        <option value="Ovos">Ovos</option>
+                        <option value="Açúcar">Açúcar</option>
+                        <option value="Margarina" selected>Margarina</option>
+                        <option value="Achocolatado">Achocolatado</option>
+                        <option value="Farinha de Trigo">Farinha de Trigo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Preço da embalagem fechada (R$)</label>
+                    <input type="number" id="ing_preco" step="0.01" value="14.00" oninput="calcularProporcao(true)">
+                </div>
+                <div class="form-group">
+                    <label>Peso/Qtd. total da embalagem (g, ml ou un)</label>
+                    <input type="number" id="ing_total" step="0.1" value="500" oninput="calcularProporcao(true)">
+                </div>
+                <div class="form-group">
+                    <label>Quanto a receita usa (mesma unidade)</label>
+                    <input type="number" id="ing_uso" step="0.1" value="200" oninput="calcularProporcao(true)">
+                </div>
+            </div>
+            <div class="result-box" id="res_proporcao"></div>
+            <button type="button" class="btn-outline" onclick="aplicarProporcaoNaReceita()">Aplicar este valor na Aba 1</button>
+        </div>
+
+        <div class="card">
+            <h2>2. Simulador de Compra Inicial (Estoque + Utensílios)</h2>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Item (Insumo ou Utensílio)</label>
+                    <input type="text" id="comp_item" placeholder="Ex: Achocolatado 1kg" oninput="salvarEstadoCompleto()">
+                </div>
+                <div class="form-group">
+                    <label>Valor unitário (R$)</label>
+                    <input type="number" id="comp_valor" step="0.01" placeholder="24.00" oninput="salvarEstadoCompleto()">
+                </div>
+                <div class="form-group">
+                    <label>Quantidade</label>
+                    <input type="number" id="comp_qtd" step="1" value="1" oninput="salvarEstadoCompleto()">
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" onclick="adicionarItemCompra()">+ Adicionar à Lista de Compras</button>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qtd.</th>
+                        <th>Unitário (R$)</th>
+                        <th>Subtotal</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="lista_compras_body"></tbody>
+            </table>
+
+            <div class="result-box" style="margin-top: 16px;">
+                <strong>ESTIMATIVA TOTAL DA COMPRA INICIAL: <span id="total_compra_geral" style="font-size: 1.25rem;">R$ 0,00</span></strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 4: METAS & COMPARADOR -->
+    <div id="tab-metas" class="hidden">
+        <div class="card">
+            <h2>1. Ponto de Equilíbrio (Quando você recupera o investimento?)</h2>
+            <p class="helper-note">Usa automaticamente o total da sua Lista de Compras (Aba 3) e o lucro calculado na Aba 1.</p>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Investimento inicial a recuperar (R$)</label>
+                    <input type="number" id="pe_investimento" step="0.01" oninput="aoEditarInvestimento()">
+                </div>
+            </div>
+            <div class="result-box" id="res_ponto_equilibrio"></div>
+        </div>
+
+        <div class="card">
+            <h2>2. Planejador de Meta de Lucro Mensal</h2>
+            <p class="helper-note">Descubra quantas fornadas e unidades precisa vender no mês para bater sua meta financeira.</p>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Meta de lucro líquido no mês (R$)</label>
+                    <input type="number" id="meta_mensal" step="10" value="600.00" oninput="calcularMetas(true)">
+                </div>
+                <div class="form-group">
+                    <label>Semanas de venda no mês</label>
+                    <input type="number" id="meta_semanas" step="1" value="4" oninput="calcularMetas(true)">
+                </div>
+            </div>
+            <div class="result-box" id="res_meta_mensal"></div>
+        </div>
+
+        <div class="card">
+            <h2>3. Comparador de Embalagens (Preço por Grama)</h2>
+            <p class="helper-note">Compare duas opções no mercado para ver qual rende mais por real gasto.</p>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Preço Opção A (R$)</label>
+                    <input type="number" id="comp_pa" step="0.01" value="10.90" oninput="compararEmbalagens(true)">
+                </div>
+                <div class="form-group">
+                    <label>Peso Opção A (g ou ml)</label>
+                    <input type="number" id="comp_ga" step="1" value="370" oninput="compararEmbalagens(true)">
+                </div>
+                <div class="form-group">
+                    <label>Preço Opção B (R$)</label>
+                    <input type="number" id="comp_pb" step="0.01" value="24.00" oninput="compararEmbalagens(true)">
+                </div>
+                <div class="form-group">
+                    <label>Peso Opção B (g ou ml)</label>
+                    <input type="number" id="comp_gb" step="1" value="1000" oninput="compararEmbalagens(true)">
+                </div>
+            </div>
+            <div class="result-box" id="res_comparador"></div>
+        </div>
+    </div>
+
+    <!-- ABA 5: CONTROLE DE VENDAS -->
+    <div id="tab-vendas" class="hidden">
+        <div class="card">
+            <h2>1. Contador Rápido de Vendas (Toque para Somar ou Subtrair)</h2>
+            <p class="helper-note">Toque em <strong>+</strong> ou <strong>−</strong> conforme for vendendo. Todos os cálculos abaixo atualizam na hora e ficam salvos automaticamente no navegador.</p>
+
+            <div class="counter-box">
+                <div class="counter-title">🍫 Brownie</div>
+
+                <div class="counter-row">
+                    <div class="counter-label-group">
+                        <span class="counter-size">Pequeno</span>
+                        <span class="counter-subprice" id="label_info_p">Preço: R$ 0,00 | Lucro/un.: R$ 0,00</span>
+                    </div>
+                    <div class="counter-controls">
+                        <button type="button" class="btn-step btn-minus" onclick="alterarContador('P', -1)">−</button>
+                        <span class="counter-value" id="contador_p">0</span>
+                        <button type="button" class="btn-step btn-plus" onclick="alterarContador('P', 1)">+</button>
+                    </div>
+                </div>
+
+                <div class="counter-row">
+                    <div class="counter-label-group">
+                        <span class="counter-size">Médio</span>
+                        <span class="counter-subprice" id="label_info_m">Preço: R$ 0,00 | Lucro/un.: R$ 0,00</span>
+                    </div>
+                    <div class="counter-controls">
+                        <button type="button" class="btn-step btn-minus" onclick="alterarContador('M', -1)">−</button>
+                        <span class="counter-value" id="contador_m">0</span>
+                        <button type="button" class="btn-step btn-plus" onclick="alterarContador('M', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>Preço de venda do PEQUENO (R$)</label>
+                    <input type="number" id="venda_preco_p" step="0.01" oninput="aoEditarPrecoVenda()">
+                </div>
+                <div class="form-group">
+                    <label>Preço de venda do MÉDIO (R$)</label>
+                    <input type="number" id="venda_preco_m" step="0.01" oninput="aoEditarPrecoVenda()">
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>2. Resultado em Tempo Real das Suas Vendas</h2>
+            <div id="resumo_vendas_cards"></div>
+            <div id="status_investimento_vendas"></div>
+
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px;">
+                <button type="button" class="btn btn-secondary" style="width: auto; margin-top: 10px;" onclick="fecharDiaNoHistorico()">Salvar contagem atual no histórico e zerar contador</button>
+                <button type="button" class="btn-outline" onclick="zerarContadorAtual()">Zerar contador atual</button>
+            </div>
+
+            <h3 style="margin-top: 24px; color: var(--primary); font-size: 1.05rem;">Histórico de Dias / Fechamentos Salvos</h3>
+            <p class="helper-note">Opcional: use o botão acima para fechar o caixa do dia e guardar no histórico abaixo.</p>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data / Ref.</th>
+                            <th>Pequenos</th>
+                            <th>Médios</th>
+                            <th>Total Vendido</th>
+                            <th>Custo Produção</th>
+                            <th>Lucro Líquido</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historico_vendas_body"></tbody>
+                </table>
+            </div>
+            <button type="button" class="btn-outline" onclick="limparVendas()">Apagar histórico salvo</button>
+        </div>
+    </div>
+
+    <!-- Rodapé com ações de manutenção, conta conectada e mini-barra de sincronização -->
+    <div class="footer-bar">
+        <div>Todas as respostas, receitas (PDF ou Link), gastos invisíveis, listas e vendas são salvos automaticamente.</div>
+        <div>
+            <button type="button" class="btn-outline" style="font-size: 0.8rem; padding: 6px 12px;" onclick="restaurarPadroes()">Restaurar valores padrão de fábrica</button>
+        </div>
+        <div class="footer-mini-row">
+            <div id="account_mini_bar" class="sync-mini-bar hidden">
+                <span class="sync-mini-status">
+                    <span class="sync-dot"></span>
+                    <span id="account_mini_text">Conta conectada</span>
+                </span>
+                <button type="button" class="sync-mini-link" onclick="sairDaConta()">Sair</button>
+            </div>
+            <div id="cloud_mini_status_bar" class="sync-mini-bar hidden">
+                <span class="sync-mini-status">
+                    <span id="sync_mini_dot" class="sync-dot"></span>
+                    <span id="sync_mini_text">Sincronizado</span>
+                </span>
+                <button type="button" class="sync-mini-link" onclick="reabrirConfigNuvem()">Alterar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notificação flutuante -->
+<div id="toast_msg" class="toast"></div>
+
+<!-- Modal customizado de confirmação -->
+<div id="confirm_modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+        <h3 id="confirm_title">Confirmar ação</h3>
+        <p id="confirm_text">Tem certeza?</p>
+        <div class="modal-actions">
+            <button type="button" class="btn-outline" style="margin-top: 0;" onclick="fecharConfirmModal(false)">Cancelar</button>
+            <button type="button" class="btn btn-secondary" style="width: auto; margin-top: 0;" onclick="fecharConfirmModal(true)">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // =========================================================================
+    // CONTROLE DA TELA DE CARREGAMENTO (SPLASH SCREEN)
+    // =========================================================================
+    let splashHideTimeout = null;
+    function exibirSplashScreen(duracaoMs = 1400) {
+        const splash = document.getElementById('splash-screen');
+        if (!splash) return;
+        splash.classList.remove('hidden-splash');
+        clearTimeout(splashHideTimeout);
+        splashHideTimeout = setTimeout(() => {
+            splash.classList.add('hidden-splash');
+        }, duracaoMs);
+    }
+
+    window.addEventListener('load', () => {
+        exibirSplashScreen(1400);
+    });
+
+    // =========================================================================
+    // AUTENTICAÇÃO COMPLETA (E-mail/Senha, Cadastro, Recuperação e Google Popup)
+    // =========================================================================
+    const FIREBASE_AUTH_CONFIG = {
+        apiKey: "AIzaSyACmfuLcs2hXVK-VB_0OU5fGKMdRmhvzVw",
+        authDomain: "gestao-de-brownie.firebaseapp.com",
+        databaseURL: "https://gestao-de-brownie-default-rtdb.firebaseio.com",
+        projectId: "gestao-de-brownie",
+        storageBucket: "gestao-de-brownie.firebasestorage.app",
+        messagingSenderId: "577319848649",
+        appId: "1:577319848649:web:1ef05a985ff63e4928db18",
+        measurementId: "G-W4SC52KQS1"
+    };
+    let firebaseAuth = null;
+    let firebaseAuthDisponivel = false;
+    let modoPreviaSimulado = false;
+    let modoAuthAtual = 'login'; // 'login' ou 'register'
+
+    function firebaseConfigPreenchida() {
+        return Boolean(FIREBASE_AUTH_CONFIG.apiKey &&
+                       FIREBASE_AUTH_CONFIG.authDomain &&
+                       FIREBASE_AUTH_CONFIG.projectId &&
+                       FIREBASE_AUTH_CONFIG.appId);
+    }
+
+    function isAmbientePreviaIsolada() {
+        const protocolValido = window.location.protocol === 'http:' || window.location.protocol === 'https:';
+        return !protocolValido ||
+            window.location.protocol === 'blob:' ||
+            window.location.hostname.endsWith('.usercontent.goog');
+    }
+
+    function exibirFeedbackLogin(mensagem, tipo = 'info') {
+        const status = document.getElementById('login_status');
+        if (!status) return;
+        if (!mensagem) {
+            status.classList.add('hidden');
+            status.textContent = '';
+            return;
+        }
+        status.textContent = mensagem;
+        status.classList.remove('hidden', 'error', 'success');
+        if (tipo === 'error') status.classList.add('error');
+        if (tipo === 'success') status.classList.add('success');
+    }
+
+    function alternarModoAuth(modo) {
+        modoAuthAtual = modo;
+        const tabLogin = document.getElementById('tab-auth-login');
+        const tabRegister = document.getElementById('tab-auth-register');
+        const btnSubmit = document.getElementById('btn_auth_submit');
+        const subtitle = document.getElementById('auth_subtitle');
+        const nameGroup = document.getElementById('auth_name_group');
+        const confirmGroup = document.getElementById('auth_confirm_group');
+        const confirmInput = document.getElementById('auth_password_confirm');
+        const forgotRow = document.getElementById('auth_forgot_row');
+        const switchToRegister = document.getElementById('auth_switch_to_register');
+        const switchToLogin = document.getElementById('auth_switch_to_login');
+        const passInput = document.getElementById('auth_password');
+
+        exibirFeedbackLogin('');
+
+        if (modo === 'register') {
+            tabLogin.classList.remove('active');
+            tabLogin.setAttribute('aria-selected', 'false');
+            tabRegister.classList.add('active');
+            tabRegister.setAttribute('aria-selected', 'true');
+            if (subtitle) subtitle.textContent = 'Crie sua conta gratuita para salvar suas receitas e vendas.';
+            if (nameGroup) nameGroup.classList.remove('hidden');
+            if (confirmGroup) confirmGroup.classList.remove('hidden');
+            if (confirmInput) confirmInput.required = true;
+            if (switchToRegister) switchToRegister.classList.add('hidden');
+            if (switchToLogin) switchToLogin.classList.remove('hidden');
+            btnSubmit.textContent = '✨ Criar minha conta';
+            if (forgotRow) forgotRow.classList.add('hidden');
+            if (passInput) passInput.setAttribute('autocomplete', 'new-password');
+        } else {
+            tabRegister.classList.remove('active');
+            tabRegister.setAttribute('aria-selected', 'false');
+            tabLogin.classList.add('active');
+            tabLogin.setAttribute('aria-selected', 'true');
+            if (subtitle) subtitle.textContent = 'Entre com sua conta para acessar suas receitas, custos e vendas.';
+            if (nameGroup) nameGroup.classList.add('hidden');
+            if (confirmGroup) confirmGroup.classList.add('hidden');
+            if (confirmInput) {
+                confirmInput.required = false;
+                confirmInput.value = '';
+            }
+            if (switchToLogin) switchToLogin.classList.add('hidden');
+            if (switchToRegister) switchToRegister.classList.remove('hidden');
+            btnSubmit.textContent = 'Entrar na conta';
+            if (forgotRow) forgotRow.classList.remove('hidden');
+            if (passInput) passInput.setAttribute('autocomplete', 'current-password');
+        }
+    }
+
+    function alternarVisibilidadeSenha(inputId = 'auth_password', btnId = 'btn_toggle_pass') {
+        const input = document.getElementById(inputId);
+        const btn = document.getElementById(btnId);
+        if (!input || !btn) return;
+        if (input.type === 'password') {
+            input.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            input.type = 'password';
+            btn.textContent = '👁️';
+        }
+    }
+
+    function traduzirErroFirebaseAuth(error) {
+        const codigo = error && error.code ? error.code : 'erro-desconhecido';
+        const dominioAtual = window.location.hostname || 'este domínio';
+
+        switch (codigo) {
+            case 'auth/invalid-email':
+                return 'O endereço de e-mail digitado não é válido.';
+            case 'auth/user-disabled':
+                return 'Esta conta foi desativada.';
+            case 'auth/user-not-found':
+            case 'auth/wrong-password':
+            case 'auth/invalid-credential':
+                return 'E-mail ou senha incorretos. Confira os dados ou clique em "Criar conta".';
+            case 'auth/email-already-in-use':
+                return 'Este e-mail já está cadastrado. Clique na aba "Entrar" para acessar sua conta.';
+            case 'auth/weak-password':
+                return 'A senha precisa ter pelo menos 6 caracteres.';
+            case 'auth/too-many-requests':
+                return 'Muitas tentativas seguidas. Aguarde alguns instantes antes de tentar novamente.';
+            case 'auth/network-request-failed':
+                return 'Sem conexão com a internet para validar o login.';
+            case 'auth/popup-blocked':
+                return 'O navegador bloqueou a janela do Google (pop-up). Permita pop-ups para este site e tente de novo.';
+            case 'auth/popup-closed-by-user':
+                return 'A janela de login do Google foi fechada antes de concluir.';
+            case 'auth/cancelled-popup-request':
+                return 'Outra janela de login já está aberta. Aguarde um instante.';
+            case 'auth/unauthorized-domain':
+                return `Domínio não autorizado (${dominioAtual}). Adicione "${dominioAtual}" em Firebase Console → Authentication → Configurações → Domínios autorizados.`;
+            case 'auth/operation-not-allowed':
+                return 'Este método de login ainda não foi ativado no painel Authentication do Firebase.';
+            default:
+                return `Não foi possível concluir (${codigo}): ${error && error.message ? error.message : 'tente novamente.'}`;
+        }
+    }
+
+    function aplicarEstadoVisualConta(user) {
+        const authPage = document.getElementById('auth-page');
+        const appContainer = document.getElementById('app-container');
+        const accountBar = document.getElementById('account_mini_bar');
+        const accountText = document.getElementById('account_mini_text');
+
+        if (user) {
+            if (authPage) authPage.classList.add('hidden');
+            if (appContainer) appContainer.classList.remove('hidden');
+            if (accountText) accountText.textContent = user.email || user.displayName || 'Conta conectada';
+            if (accountBar) accountBar.classList.remove('hidden');
+        } else {
+            if (appContainer) appContainer.classList.add('hidden');
+            if (accountBar) accountBar.classList.add('hidden');
+            if (authPage) authPage.classList.remove('hidden');
+        }
+    }
+
+    function simularLoginPrevia() {
+        modoPreviaSimulado = true;
+        exibirFeedbackLogin('');
+        aplicarEstadoVisualConta({
+            displayName: 'Confeiteiro(a) Brownie (Prévia)',
+            email: 'atelie.brownie@gmail.com'
+        });
+        mostrarToast('Acesso liberado no modo prévia!');
+    }
+
+    async function prepararLoginGoogle() {
+        if (!firebaseConfigPreenchida()) return;
+        try {
+            if (!window.firebase) {
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js';
+                    script.onload = resolve; script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+                await new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js';
+                    script.onload = resolve; script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+            if (!firebase.apps.length) firebase.initializeApp(FIREBASE_AUTH_CONFIG);
+            firebaseAuth = firebase.auth();
+            await firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+            firebaseAuthDisponivel = true;
+
+            firebaseAuth.onAuthStateChanged(user => {
+                if (!modoPreviaSimulado) {
+                    aplicarEstadoVisualConta(user);
+                }
+            });
+        } catch (e) {
+            console.warn('Autenticação Firebase não inicializada neste ambiente:', e);
+            exibirFeedbackLogin('Login externo indisponível neste ambiente de prévia isolada. Use o botão "Testar sem login (modo prévia)" abaixo.', 'info');
+        }
+    }
+
+    async function enviarFormularioEmailSenha(event) {
+        event.preventDefault();
+        const nome = (document.getElementById('auth_name').value || '').trim();
+        const email = (document.getElementById('auth_email').value || '').trim();
+        const senha = document.getElementById('auth_password').value || '';
+        const senhaConfirm = document.getElementById('auth_password_confirm').value || '';
+        const btnSubmit = document.getElementById('btn_auth_submit');
+
+        if (!email || !senha) {
+            exibirFeedbackLogin('Preencha seu e-mail e sua senha.', 'error');
+            return;
+        }
+
+        if (modoAuthAtual === 'register') {
+            if (senha.length < 6) {
+                exibirFeedbackLogin('A senha precisa ter pelo menos 6 caracteres.', 'error');
+                return;
+            }
+            if (senha !== senhaConfirm) {
+                exibirFeedbackLogin('As senhas não coincidem. Digite a mesma senha nos dois campos.', 'error');
+                document.getElementById('auth_password_confirm').focus();
+                return;
+            }
+        }
+
+        if (isAmbientePreviaIsolada()) {
+            exibirFeedbackLogin('Neste ambiente de prévia isolada (sandbox), o servidor externo de login é bloqueado pelo navegador. Clique em "Testar sem login (modo prévia)" abaixo para abrir o painel, ou publique no GitHub Pages / Firebase Hosting.', 'info');
+            return;
+        }
+
+        if (!firebaseAuthDisponivel || !firebaseAuth) {
+            exibirFeedbackLogin('Aguarde um instante enquanto conectamos ao servidor de autenticação...', 'info');
+            return;
+        }
+
+        btnSubmit.disabled = true;
+        exibirFeedbackLogin(modoAuthAtual === 'register' ? 'Criando sua conta...' : 'Entrando na sua conta...', 'info');
+
+        try {
+            let cred;
+            if (modoAuthAtual === 'register') {
+                cred = await firebaseAuth.createUserWithEmailAndPassword(email, senha);
+                if (nome && cred && cred.user) {
+                    await cred.user.updateProfile({ displayName: nome }).catch(() => {});
+                }
+                mostrarToast('Conta criada com sucesso! Bem-vindo(a)!');
+            } else {
+                cred = await firebaseAuth.signInWithEmailAndPassword(email, senha);
+                mostrarToast('Login realizado com sucesso!');
+            }
+            modoPreviaSimulado = false;
+            exibirFeedbackLogin('');
+            aplicarEstadoVisualConta(cred && cred.user ? cred.user : firebaseAuth.currentUser);
+        } catch (error) {
+            const msg = traduzirErroFirebaseAuth(error);
+            exibirFeedbackLogin(msg, 'error');
+            mostrarToast('Não foi possível entrar.', true);
+        } finally {
+            btnSubmit.disabled = false;
+        }
+    }
+
+    async function recuperarSenhaEmail() {
+        const email = (document.getElementById('auth_email').value || '').trim();
+        if (!email) {
+            exibirFeedbackLogin('Digite seu e-mail no campo acima primeiro e depois toque em "Esqueci minha senha".', 'error');
+            document.getElementById('auth_email').focus();
+            return;
+        }
+
+        if (isAmbientePreviaIsolada()) {
+            exibirFeedbackLogin('A redefinição de senha por e-mail funciona quando o site está publicado em HTTPS.', 'info');
+            return;
+        }
+
+        if (!firebaseAuthDisponivel || !firebaseAuth) {
+            exibirFeedbackLogin('Servidor de autenticação ainda carregando. Tente novamente em instantes.', 'info');
+            return;
+        }
+
+        try {
+            await firebaseAuth.sendPasswordResetEmail(email);
+            exibirFeedbackLogin(`Enviamos um link de redefinição de senha para ${email}. Verifique sua caixa de entrada e spam.`, 'success');
+            mostrarToast('E-mail de redefinição enviado!');
+        } catch (error) {
+            exibirFeedbackLogin(traduzirErroFirebaseAuth(error), 'error');
+        }
+    }
+
+    async function entrarComGoogle() {
+        const btnLogin = document.getElementById('btn_google_login');
+
+        if (isAmbientePreviaIsolada()) {
+            exibirFeedbackLogin('O login com Google exige um domínio HTTP/HTTPS padrão fora de prévia em sandbox/blob. Use "Testar sem login (modo prévia)" abaixo para visualizar o app.', 'info');
+            return;
+        }
+
+        if (!firebaseAuthDisponivel || !firebaseAuth) {
+            exibirFeedbackLogin('Aguarde o carregamento do Firebase ou verifique as credenciais Web.', 'error');
+            return;
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: 'select_account' });
+
+        if (btnLogin) btnLogin.disabled = true;
+        exibirFeedbackLogin('Abrindo janela de seleção de conta Google...', 'info');
+
+        try {
+            // signInWithPopup evita a perda de sessionStorage ("missing initial state") em redirecionamentos no celular
+            const cred = await firebaseAuth.signInWithPopup(provider);
+            modoPreviaSimulado = false;
+            exibirFeedbackLogin('');
+            aplicarEstadoVisualConta(cred && cred.user ? cred.user : firebaseAuth.currentUser);
+            mostrarToast('Login Google realizado com sucesso!');
+        } catch (e) {
+            const msg = traduzirErroFirebaseAuth(e);
+            exibirFeedbackLogin(msg, 'error');
+            mostrarToast('Não foi possível entrar com Google.', true);
+        } finally {
+            if (btnLogin) btnLogin.disabled = false;
+        }
+    }
+
+    async function sairDaConta() {
+        if (modoPreviaSimulado) {
+            modoPreviaSimulado = false;
+            aplicarEstadoVisualConta(null);
+            mostrarToast('Você saiu do modo prévia.');
+            return;
+        }
+        if (firebaseAuth) {
+            await firebaseAuth.signOut();
+            aplicarEstadoVisualConta(null);
+            mostrarToast('Você saiu da sua conta.');
+        }
+    }
+
+    // Protege textos inseridos pelo usuário quando são renderizados em HTML.
+    function escaparHTML(valor) {
+        return String(valor ?? '').replace(/[&<>\"']/g, caractere => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', "'": '&#39;'
+        }[caractere]));
+    }
+
+    function validarUrlHttp(valor) {
+        try {
+            const url = new URL(String(valor || '').trim());
+            return (url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password
+                ? url.href : '';
+        } catch (_) { return ''; }
+    }
+
+    const STORAGE_KEY_STATE = 'brownie_gestao_estado_v4';
+    const STORAGE_KEY_COMPRAS = 'brownie_lista_compras_v1';
+    const STORAGE_KEY_CLOUD = 'brownie_cloud_config_v1';
+    const STORAGE_KEY_FIRST_SYNC = 'brownie_primeira_sync_ok_v1';
+
+    let jaSincronizouNuvem = localStorage.getItem(STORAGE_KEY_FIRST_SYNC) === 'true';
+
+    let estadoGlobal = {
+        custoFinalP: 0,
+        custoFinalM: 0,
+        vendaSugeridaP: 0,
+        vendaSugeridaM: 0,
+        lucroP: 0,
+        lucroM: 0,
+        lucroForma: 0,
+        qtdP: 0,
+        qtdM: 0,
+        totalCompras: 0,
+        ultimoProporcional: 0,
+        totalInvisivelDetalhado: 0
+    };
+
+    const listaComprasPadrao = [
+        { item: "Ovos (dúzia)", valor: 12.00, qtd: 1 },
+        { item: "Açúcar (1kg)", valor: 5.00, qtd: 1 },
+        { item: "Margarina (500g)", valor: 14.00, qtd: 1 },
+        { item: "Achocolatado (1kg)", valor: 24.00, qtd: 1 },
+        { item: "Farinha de Trigo (1kg)", valor: 5.50, qtd: 1 },
+        { item: "Assadeira retangular", valor: 35.00, qtd: 1 },
+        { item: "Saquinhos embalagem (pct 100)", valor: 12.00, qtd: 1 }
+    ];
+
+    const extrasInvisiveisPadrao = [
+        { nome: "Água e detergente (lavar louça/forma)", valor: 0.65 },
+        { nome: "Papel manteiga / desmoldante para forma", valor: 0.85 }
+    ];
+
+    let listaCompras = JSON.parse(JSON.stringify(listaComprasPadrao));
+    let extrasInvisiveis = JSON.parse(JSON.stringify(extrasInvisiveisPadrao));
+    let receitaSalva = {
+        pdfNome: '',
+        pdfDataUrl: '',
+        linkUrl: ''
+    };
+    let contadorAtual = { P: 0, M: 0 };
+    let historicoVendas = [];
+    let abaAtivaAtual = 'tab-lucro';
+    let precoVendaManual = false;
+    let investimentoManual = false;
+
+    const CAMPOS_INPUT_IDS = [
+        'c_ovos', 'c_acucar', 'c_margarina', 'c_achocolatado', 'c_farinha', 'c_extras',
+        'modo_invisivel', 'c_taxa', 'c_invisivel_real',
+        'qtd_p', 'qtd_m', 'c_emb', 'mult_lucro',
+        'rec_titulo', 'rec_temperatura', 'rec_link_input',
+        'inv_tempo_bater', 'inv_tempo_assar', 'inv_mao_minutos', 'inv_mao_valor_hora', 'inv_mao_incluir',
+        'inv_gas_preco', 'inv_gas_minutos', 'inv_gas_consumo',
+        'inv_luz_tarifa', 'inv_luz_potencia', 'inv_luz_minutos',
+        'ing_nome', 'ing_preco', 'ing_total', 'ing_uso',
+        'comp_item', 'comp_valor', 'comp_qtd',
+        'pe_investimento', 'meta_mensal', 'meta_semanas',
+        'comp_pa', 'comp_ga', 'comp_pb', 'comp_gb',
+        'venda_preco_p', 'venda_preco_m'
+    ];
+
+    function atualizarVisibilidadeBadgeTopo() {
+        const badge = document.getElementById('save_status_badge');
+        if (badge) {
+            badge.classList.add('hidden');
+        }
+    }
+
+    function marcarPrimeiraSincronizacaoConcluida() {
+        jaSincronizouNuvem = true;
+        localStorage.setItem(STORAGE_KEY_FIRST_SYNC, 'true');
+        atualizarVisibilidadeBadgeTopo();
+    }
+
+    let badgeTimer = null;
+    function indicarSalvo() {
+        const badge = document.getElementById('save_status_badge');
+        const cfg = obterConfigNuvem();
+        const miniText = document.getElementById('sync_mini_text');
+        if (miniText && cfg.url && cfg.room) {
+            miniText.textContent = 'Sincronizando...';
+        }
+        if (badge) {
+            badge.classList.add('hidden');
+            badge.classList.remove('saving');
+        }
+        clearTimeout(badgeTimer);
+        badgeTimer = setTimeout(() => {
+            if (miniText && cfg.url && cfg.room) {
+                miniText.textContent = 'Sincronizado';
+            }
+        }, 400);
+    }
+
+    let toastTimer = null;
+    function mostrarToast(msg, isError = false) {
+        const toast = document.getElementById('toast_msg');
+        toast.textContent = msg;
+        toast.classList.toggle('error', isError);
+        toast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3200);
+    }
+
+    let confirmCallback = null;
+    function pedirConfirmacao(titulo, texto, callback) {
+        document.getElementById('confirm_title').textContent = titulo;
+        document.getElementById('confirm_text').textContent = texto;
+        confirmCallback = callback;
+        document.getElementById('confirm_modal').classList.remove('hidden');
+    }
+
+    function fecharConfirmModal(confirmado) {
+        document.getElementById('confirm_modal').classList.add('hidden');
+        if (confirmado && typeof confirmCallback === 'function') {
+            try {
+                confirmCallback();
+            } catch (err) {
+                mostrarToast('Erro ao executar ação confirmada.', true);
+            }
+        }
+        confirmCallback = null;
+    }
+
+    let cloudSyncTimer = null;
+    let ultimoTimestampLocal = 0;
+
+    function atualizarVisibilidadePainelNuvem() {
+        const cfg = obterConfigNuvem();
+        const card = document.getElementById('cloud_panel_card');
+        const miniBar = document.getElementById('cloud_mini_status_bar');
+        if (!card) return;
+        const configuracaoConcluida = Boolean(cfg.url && cfg.room);
+        if (configuracaoConcluida) {
+            card.classList.add('hidden');
+            if (miniBar) miniBar.classList.remove('hidden');
+        } else {
+            card.classList.remove('hidden');
+            if (miniBar) miniBar.classList.add('hidden');
+        }
+        atualizarVisibilidadeBadgeTopo();
+    }
+
+    function reabrirConfigNuvem() {
+        const card = document.getElementById('cloud_panel_card');
+        const box = document.getElementById('cloud_config_box');
+        if (card) card.classList.remove('hidden');
+        if (box) box.classList.remove('hidden');
+    }
+
+    function obterConfigNuvem() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_CLOUD);
+            if (!raw) return { url: '', room: '' };
+            const parsed = JSON.parse(raw);
+            const url = validarUrlHttp(parsed.url).replace(/\/+$/, '');
+            return {
+                url: url.startsWith('https://') ? url : '',
+                room: (parsed.room || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80)
+            };
+        } catch (e) {
+            return { url: '', room: '' };
+        }
+    }
+
+    function toggleCloudConfig() {
+        const box = document.getElementById('cloud_config_box');
+        if (box) box.classList.toggle('hidden');
+    }
+
+    function atualizarStatusNuvemUI(statusTexto, conectado = false) {
+        const badge = document.getElementById('save_status_badge');
+        const hint = document.getElementById('cloud_sync_hint');
+        const miniText = document.getElementById('sync_mini_text');
+        const miniDot = document.getElementById('sync_mini_dot');
+        if (badge) {
+            badge.classList.add('hidden');
+            atualizarVisibilidadeBadgeTopo();
+        }
+        if (miniText) {
+            if (conectado) {
+                miniText.textContent = 'Sincronizado';
+                if (miniDot) miniDot.classList.remove('offline');
+            } else {
+                miniText.textContent = 'Nuvem desconectada';
+                if (miniDot) miniDot.classList.add('offline');
+            }
+        }
+        if (hint && conectado) {
+            const cfg = obterConfigNuvem();
+            hint.innerHTML = `✅ Conectado na sala <strong>${escaparHTML(cfg.room)}</strong>. Qualquer alteração salva e aparece automaticamente nos seus outros dispositivos.`;
+        }
+    }
+
+    function conectarNuvem() {
+        const urlInformada = (document.getElementById('cloud_db_url').value || '').trim().replace(/\/+$/, '');
+        const rawUrl = validarUrlHttp(urlInformada).replace(/\/+$/, '');
+        const rawRoom = (document.getElementById('cloud_room_id').value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 80);
+        if (!rawUrl || !rawUrl.startsWith('https://') || !rawRoom) {
+            mostrarToast('Informe uma URL HTTPS válida do Firebase e um identificador de sala (até 80 caracteres).', true);
+            return;
+        }
+        localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify({ url: rawUrl, room: rawRoom }));
+        document.getElementById('cloud_config_box').classList.add('hidden');
+        atualizarVisibilidadePainelNuvem();
+        sincronizarDaNuvem(true);
+    }
+
+    function montarPayloadAtual() {
+        const inputs = {};
+        CAMPOS_INPUT_IDS.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) inputs[id] = el.value;
+        });
+        ultimoTimestampLocal = Date.now();
+        return {
+            updatedAt: ultimoTimestampLocal,
+            inputs,
+            listaCompras,
+            extrasInvisiveis,
+            receitaSalva,
+            contadorAtual,
+            historicoVendas,
+            abaAtivaAtual,
+            precoVendaManual,
+            investimentoManual,
+            jaSincronizouNuvem,
+            cloudConfig: obterConfigNuvem()
+        };
+    }
+
+    function aplicarPayloadNaTela(data) {
+        if (!data || typeof data !== 'object') return;
+        if (data.inputs) {
+            CAMPOS_INPUT_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && data.inputs[id] !== undefined) {
+                    el.value = data.inputs[id];
+                }
+            });
+        }
+        if (Array.isArray(data.listaCompras)) listaCompras = data.listaCompras;
+        if (Array.isArray(data.extrasInvisiveis)) extrasInvisiveis = data.extrasInvisiveis;
+        if (data.receitaSalva && typeof data.receitaSalva === 'object') {
+            receitaSalva = {
+                pdfNome: data.receitaSalva.pdfNome || '',
+                pdfDataUrl: data.receitaSalva.pdfDataUrl || '',
+                linkUrl: data.receitaSalva.linkUrl || ''
+            };
+        }
+        if (data.contadorAtual) contadorAtual = data.contadorAtual;
+        if (Array.isArray(data.historicoVendas)) historicoVendas = data.historicoVendas;
+        abaAtivaAtual = 'tab-lucro';
+        precoVendaManual = Boolean(data.precoVendaManual);
+        investimentoManual = Boolean(data.investimentoManual);
+        if (data.updatedAt) ultimoTimestampLocal = data.updatedAt;
+        if (data.cloudConfig && data.cloudConfig.url && data.cloudConfig.room) {
+            localStorage.setItem(STORAGE_KEY_CLOUD, JSON.stringify(data.cloudConfig));
+        }
+        if (typeof data.jaSincronizouNuvem === 'boolean' && data.jaSincronizouNuvem) {
+            marcarPrimeiraSincronizacaoConcluida();
+        }
+
+        localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(data));
+        atualizarVisibilidadePainelNuvem();
+        abaAtivaAtual = 'tab-lucro';
+        switchTab('tab-lucro', document.getElementById('btn-tab-lucro'), false);
+        calcularGastosInvisiveis(false);
+        calcularProporcao(false);
+        renderListaCompras(!investimentoManual);
+        compararEmbalagens(false);
+        renderVendas();
+    }
+
+    async function enviarParaNuvem(payload) {
+        const cfg = obterConfigNuvem();
+        if (!cfg.url || !cfg.room) return;
+        try {
+            atualizarStatusNuvemUI('☁️ Sincronizando com seus dispositivos...', true);
+            const resp = await fetch(`${cfg.url}/brownie_sync/${cfg.room}.json`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            marcarPrimeiraSincronizacaoConcluida();
+            atualizarStatusNuvemUI('☁️ Tudo salvo e sincronizado em nuvem', true);
+        } catch (err) {
+            atualizarStatusNuvemUI('☁️ Aguardando conexão com a nuvem', false);
+        }
+    }
+
+    async function sincronizarDaNuvem(forcarEnvioSeVazio = false) {
+        const cfg = obterConfigNuvem();
+        if (!cfg.url || !cfg.room) return;
+        try {
+            const resp = await fetch(`${cfg.url}/brownie_sync/${cfg.room}.json`);
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const remoteData = await resp.json();
+            if (remoteData && typeof remoteData === 'object') {
+                if (!ultimoTimestampLocal || (remoteData.updatedAt && remoteData.updatedAt > ultimoTimestampLocal)) {
+                    aplicarPayloadNaTela(remoteData);
+                    if (forcarEnvioSeVazio) mostrarToast('Dados sincronizados da nuvem com sucesso!');
+                } else if (forcarEnvioSeVazio && ultimoTimestampLocal > (remoteData.updatedAt || 0)) {
+                    await enviarParaNuvem(montarPayloadAtual());
+                    mostrarToast('Seus dados locais foram enviados para a nuvem!');
+                }
+                marcarPrimeiraSincronizacaoConcluida();
+                atualizarStatusNuvemUI('☁️ Tudo salvo e sincronizado em nuvem', true);
+            } else if (forcarEnvioSeVazio) {
+                await enviarParaNuvem(montarPayloadAtual());
+                mostrarToast('Sala criada! Dados enviados para a nuvem.');
+            }
+        } catch (err) {
+            if (forcarEnvioSeVazio) {
+                mostrarToast('Erro ao conectar na nuvem. Verifique a URL e as regras do Firebase.', true);
+            }
+        }
+    }
+
+    function salvarEstadoCompleto() {
+        try {
+            const payload = montarPayloadAtual();
+
+            localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(payload));
+            localStorage.setItem(STORAGE_KEY_COMPRAS, JSON.stringify(listaCompras));
+            localStorage.setItem('brownie_contador_v1', JSON.stringify(contadorAtual));
+            localStorage.setItem('brownie_vendas_v2', JSON.stringify(historicoVendas));
+            indicarSalvo();
+
+            const cfg = obterConfigNuvem();
+            if (cfg.url && cfg.room) {
+                clearTimeout(cloudSyncTimer);
+                cloudSyncTimer = setTimeout(() => {
+                    enviarParaNuvem(payload);
+                }, 600);
+            }
+        } catch (e) {
+            if (e && e.name === 'QuotaExceededError') {
+                mostrarToast("O arquivo PDF é grande demais para o armazenamento do navegador. Tente um PDF menor ou salve o link da receita.", true);
+            } else {
+                mostrarToast('Não foi possível salvar no armazenamento local.', true);
+            }
+        }
+    }
+
+    function carregarEstadoCompleto() {
+        let encontrouAlgo = false;
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY_STATE) || localStorage.getItem('brownie_gestao_estado_v2') || localStorage.getItem('brownie_gestao_estado_v1');
+            if (raw) {
+                const data = JSON.parse(raw);
+                if (data.inputs) {
+                    CAMPOS_INPUT_IDS.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el && data.inputs[id] !== undefined) {
+                            el.value = data.inputs[id];
+                        }
+                    });
+                }
+                if (Array.isArray(data.listaCompras)) listaCompras = data.listaCompras;
+                if (Array.isArray(data.extrasInvisiveis)) extrasInvisiveis = data.extrasInvisiveis;
+                if (data.receitaSalva && typeof data.receitaSalva === 'object') {
+                    receitaSalva = {
+                        pdfNome: data.receitaSalva.pdfNome || '',
+                        pdfDataUrl: data.receitaSalva.pdfDataUrl || '',
+                        linkUrl: data.receitaSalva.linkUrl || ''
+                    };
+                }
+                if (data.contadorAtual) contadorAtual = data.contadorAtual;
+                if (Array.isArray(data.historicoVendas)) historicoVendas = data.historicoVendas;
+                abaAtivaAtual = 'tab-lucro';
+                precoVendaManual = Boolean(data.precoVendaManual);
+                investimentoManual = Boolean(data.investimentoManual);
+                if (data.updatedAt) ultimoTimestampLocal = data.updatedAt;
+                if (typeof data.jaSincronizouNuvem === 'boolean' && data.jaSincronizouNuvem) {
+                    jaSincronizouNuvem = true;
+                    localStorage.setItem(STORAGE_KEY_FIRST_SYNC, 'true');
+                }
+                encontrouAlgo = true;
+            }
+        } catch (e) {
+            mostrarToast('Aviso: não foi possível ler dados salvos anteriormente.', true);
+        }
+        return encontrouAlgo;
+    }
+
+    function formatBRL(val) {
+        const seguro = Number.isFinite(val) ? val : 0;
+        return seguro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    function switchTab(tabId, btn, salvar = true) {
+        const tabs = ['tab-lucro', 'tab-receita', 'tab-insumos', 'tab-metas', 'tab-vendas'];
+        tabs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        });
+        const target = document.getElementById(tabId);
+        if (target) target.classList.remove('hidden');
+
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if (btn) {
+            btn.classList.add('active');
+        } else {
+            const fallbackBtn = document.getElementById('btn-' + tabId);
+            if (fallbackBtn) fallbackBtn.classList.add('active');
+        }
+
+        abaAtivaAtual = tabId;
+        if (salvar) salvarEstadoCompleto();
+    }
+
+    function aoEditarAba1() {
+        atualizarTudo(!precoVendaManual);
+        salvarEstadoCompleto();
+    }
+
+    function aoEditarPrecoVenda() {
+        precoVendaManual = true;
+        renderVendas();
+        salvarEstadoCompleto();
+    }
+
+    function aoEditarInvestimento() {
+        investimentoManual = true;
+        calcularMetas(true);
+    }
+
+    function salvarPdfReceita(inputEl) {
+        const file = inputEl && inputEl.files && inputEl.files[0];
+        if (!file) return;
+
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+        if (!isPdf) {
+            mostrarToast("Selecione um arquivo em formato PDF (.pdf).", true);
+            inputEl.value = '';
+            return;
+        }
+
+        if (file.size > 4 * 1024 * 1024) {
+            mostrarToast("PDF maior que 4 MB pode exceder o limite salvo do navegador.", true);
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            receitaSalva.pdfNome = file.name;
+            receitaSalva.pdfDataUrl = evt.target.result;
+            renderReceitaSalva();
+            salvarEstadoCompleto();
+            mostrarToast(`PDF "${file.name}" salvo na aba para quando for fazer o brownie!`);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function salvarLinkReceita() {
+        const rawUrl = document.getElementById('rec_link_input').value.trim();
+        if (!rawUrl) {
+            mostrarToast("Cole o link da receita antes de salvar.", true);
+            return;
+        }
+        let finalUrl = rawUrl;
+        if (!/^https?:\/\//i.test(finalUrl)) {
+            finalUrl = 'https://' + finalUrl;
+        }
+        receitaSalva.linkUrl = finalUrl;
+        document.getElementById('rec_link_input').value = finalUrl;
+        renderReceitaSalva();
+        salvarEstadoCompleto();
+        mostrarToast("Link da receita salvo na aba!");
+    }
+
+    function removerPdfReceita() {
+        receitaSalva.pdfNome = '';
+        receitaSalva.pdfDataUrl = '';
+        const inp = document.getElementById('rec_pdf_input');
+        if (inp) inp.value = '';
+        renderReceitaSalva();
+        salvarEstadoCompleto();
+        mostrarToast("PDF removido.");
+    }
+
+    function removerLinkReceita() {
+        receitaSalva.linkUrl = '';
+        document.getElementById('rec_link_input').value = '';
+        renderReceitaSalva();
+        salvarEstadoCompleto();
+        mostrarToast("Link removido.");
+    }
+
+    let ultimoPdfBlobUrl = '';
+
+    function criarBlobUrlDoPdf(dataUrl) {
+        try {
+            const partes = dataUrl.split(',');
+            if (partes.length < 2) return dataUrl;
+            const byteString = atob(partes[1]);
+            const mimeMatch = partes[0].match(/:(.*?);/);
+            const mime = mimeMatch ? mimeMatch[1] : 'application/pdf';
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mime });
+            if (ultimoPdfBlobUrl) {
+                URL.revokeObjectURL(ultimoPdfBlobUrl);
+            }
+            ultimoPdfBlobUrl = URL.createObjectURL(blob);
+            return ultimoPdfBlobUrl;
+        } catch (e) {
+            return dataUrl;
+        }
+    }
+
+    function abrirPdfEmNovaAba() {
+        if (!receitaSalva.pdfDataUrl) return;
+        const blobUrl = criarBlobUrlDoPdf(receitaSalva.pdfDataUrl);
+        const win = window.open(blobUrl, '_blank');
+        if (!win) {
+            window.location.href = blobUrl;
+        }
+    }
+
+    function baixarParaEscolherLeitorPdf() {
+        if (!receitaSalva.pdfDataUrl) return;
+        const blobUrl = criarBlobUrlDoPdf(receitaSalva.pdfDataUrl);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = receitaSalva.pdfNome || 'receita-brownie.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        mostrarToast('PDF enviado! Toque na notificação/arquivo para escolher o leitor de PDF.');
+    }
+
+    function renderReceitaSalva() {
+        const titulo = (document.getElementById('rec_titulo').value || '').trim();
+        const temp = (document.getElementById('rec_temperatura').value || '180°C').trim();
+        const bater = parseFloat(document.getElementById('inv_tempo_bater').value) || 0;
+        const assar = parseFloat(document.getElementById('inv_tempo_assar').value) || 0;
+
+        document.getElementById('rec_resumo_rapido').textContent =
+            `Fogão: ${temp} • Bater: ${bater} min • Assar: ${assar} min`;
+
+        const container = document.getElementById('receita_salva_container');
+        let html = '';
+
+        if (titulo) {
+            html += `<div style="margin-top: 8px; font-weight: 700; color: var(--primary);">🍫 ${escaparHTML(titulo)}</div>`;
+        }
+
+        if (receitaSalva.pdfDataUrl && receitaSalva.pdfNome) {
+            html += `
+                <div class="recipe-item-row">
+                    <div>
+                        <div>📄 <strong>PDF Salvo:</strong> ${escaparHTML(receitaSalva.pdfNome)}</div>
+                        <div class="helper-note">Pronto para abrir quando for preparar a massa e assar.</div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn" style="margin-top:0;width:auto;padding:9px 14px;font-size:0.9rem;" onclick="abrirPdfEmNovaAba()">📄 Abrir PDF Direto</button>
+                        <button type="button" class="btn-outline" style="margin-top:0;padding:8px 12px;" onclick="baixarParaEscolherLeitorPdf()">📲 Escolher Leitor de PDF</button>
+                        <button type="button" class="btn-danger" onclick="removerPdfReceita()">Remover</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        const linkReceitaSeguro = validarUrlHttp(receitaSalva.linkUrl);
+        if (linkReceitaSeguro) {
+            html += `
+                <div class="recipe-item-row">
+                    <div style="word-break:break-all;">
+                        <div>🔗 <strong>Link Salvo:</strong> <a href="${escaparHTML(linkReceitaSeguro)}" target="_blank" rel="noopener noreferrer" style="color:var(--primary);font-weight:700;">${escaparHTML(linkReceitaSeguro)}</a></div>
+                        <div class="helper-note">Contém ingredientes, modo de preparo, temperatura e tempos.</div>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <a href="${escaparHTML(linkReceitaSeguro)}" target="_blank" rel="noopener noreferrer" class="btn-outline" style="margin-top:0;">Abrir Link</a>
+                        <button type="button" class="btn-danger" onclick="removerLinkReceita()">Remover</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (!html) {
+            html = `<p class="helper-note" style="margin:10px 0 0 0;">Nenhum PDF ou link salvo ainda. Selecione um arquivo PDF ou cole o link acima — ele ficará guardado aqui para suas próximas fornadas.</p>`;
+        }
+
+        container.innerHTML = html;
+    }
+
+    function adicionarSugestaoInvisivel(nome, valor) {
+        extrasInvisiveis.push({ nome, valor });
+        calcularGastosInvisiveis(true);
+        mostrarToast(`"${nome}" adicionado!`);
+    }
+
+    function adicionarExtraInvisivelManual() {
+        const nome = document.getElementById('inv_extra_nome').value.trim();
+        const valor = parseFloat(document.getElementById('inv_extra_valor').value);
+        if (!nome || isNaN(valor) || valor < 0) {
+            mostrarToast("Informe a descrição e um valor válido por fornada.", true);
+            return;
+        }
+        extrasInvisiveis.push({ nome, valor });
+        document.getElementById('inv_extra_nome').value = '';
+        document.getElementById('inv_extra_valor').value = '';
+        calcularGastosInvisiveis(true);
+        mostrarToast(`"${nome}" adicionado aos gastos invisíveis!`);
+    }
+
+    function editarExtraInvisivel(idx, valor) {
+        if (!extrasInvisiveis[idx]) return;
+        const num = parseFloat(valor);
+        if (!isNaN(num) && num >= 0) {
+            extrasInvisiveis[idx].valor = num;
+            calcularGastosInvisiveis(true);
+        }
+    }
+
+    function removerExtraInvisivel(idx) {
+        extrasInvisiveis.splice(idx, 1);
+        calcularGastosInvisiveis(true);
+    }
+
+    function calcularGastosInvisiveis(salvar = false) {
+        renderReceitaSalva();
+
+        const minBater = parseFloat(document.getElementById('inv_tempo_bater').value) || 0;
+        const minAssar = parseFloat(document.getElementById('inv_tempo_assar').value) || 0;
+        const minExtraMao = parseFloat(document.getElementById('inv_mao_minutos').value) || 0;
+        const tempoTotalMin = minBater + minAssar + minExtraMao;
+
+        const maoValorHora = parseFloat(document.getElementById('inv_mao_valor_hora').value) || 0;
+        const maoIncluir = document.getElementById('inv_mao_incluir').value === 'sim';
+        const custoTempoBruto = maoValorHora * (tempoTotalMin / 60);
+        const custoTempo = maoIncluir ? custoTempoBruto : 0;
+
+        const gasPreco = parseFloat(document.getElementById('inv_gas_preco').value) || 0;
+        const gasMin = parseFloat(document.getElementById('inv_gas_minutos').value) || 0;
+        const gasConsumoKgH = parseFloat(document.getElementById('inv_gas_consumo').value) || 0;
+        const precoKgGas = gasPreco / 13;
+        const kgUsado = gasConsumoKgH * (gasMin / 60);
+        const custoGas = kgUsado * precoKgGas;
+
+        const luzTarifa = parseFloat(document.getElementById('inv_luz_tarifa').value) || 0;
+        const luzWatts = parseFloat(document.getElementById('inv_luz_potencia').value) || 0;
+        const luzMin = parseFloat(document.getElementById('inv_luz_minutos').value) || 0;
+        const kwhUsado = (luzWatts / 1000) * (luzMin / 60);
+        const custoLuz = kwhUsado * luzTarifa;
+
+        const tbody = document.getElementById('tabela_invisiveis_extras_body');
+        tbody.innerHTML = '';
+        let totalExtras = 0;
+
+        extrasInvisiveis.forEach((ext, idx) => {
+            totalExtras += ext.valor;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${escaparHTML(ext.nome)}</td>
+                <td>R$ <input type="number" step="0.05" min="0" value="${Number(ext.valor).toFixed(2)}" style="width: 85px; padding: 5px 7px;" onchange="editarExtraInvisivel(${idx}, this.value)"></td>
+                <td><button type="button" class="btn-danger" onclick="removerExtraInvisivel(${idx})">Remover</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const totalInvisivel = custoTempo + custoGas + custoLuz + totalExtras;
+        estadoGlobal.totalInvisivelDetalhado = totalInvisivel;
+        document.getElementById('c_invisivel_real').value = totalInvisivel.toFixed(2);
+
+        const box = document.getElementById('res_gastos_invisiveis');
+        box.innerHTML = `
+            <div style="font-size: 1.05rem; margin-bottom: 10px;">
+                👻 <strong>Resumo de Gastos Invisíveis Desta Fornada:</strong>
+            </div>
+            <div class="result-grid">
+                <div class="price-card">
+                    <h3>⏱️ Tempo Gasto (${tempoTotalMin} min)</h3>
+                    <div>Bater (${minBater}m) + Assar (${minAssar}m) + Extra (${minExtraMao}m)</div>
+                    <div style="margin-top:6px;">Valor: <strong>${maoIncluir ? formatBRL(custoTempo) : 'Não somado (' + formatBRL(custoTempoBruto) + ')'}</strong></div>
+                </div>
+                <div class="price-card">
+                    <h3>🔥 Gás & ⚡ Luz</h3>
+                    <div>Gás (${gasMin} min): <strong>${formatBRL(custoGas)}</strong></div>
+                    <div>Luz (${luzMin} min): <strong>${formatBRL(custoLuz)}</strong></div>
+                </div>
+                <div class="price-card" style="background: #fffbeb; border-color: #fcd34d;">
+                    <h3>💰 Total Salvo na Aba 1</h3>
+                    <div class="price-highlight" style="color: #b45309;">${formatBRL(totalInvisivel)}</div>
+                    <div class="helper-note">Outros gastos (${extrasInvisiveis.length}): <strong>${formatBRL(totalExtras)}</strong></div>
+                </div>
+            </div>
+            <div style="margin-top: 12px; font-size: 0.92rem;">
+                ✓ Esse valor de <strong>${formatBRL(totalInvisivel)}</strong> já está salvo na <strong>Aba 1</strong> para somar aos ingredientes que você preencher lá.
+            </div>
+        `;
+
+        calcularLucro(!precoVendaManual);
+        calcularMetas(false);
+        renderVendas();
+
+        if (salvar) salvarEstadoCompleto();
+    }
+
+    function enviarInvisiveisParaAba1() {
+        document.getElementById('modo_invisivel').value = 'detalhado';
+        document.getElementById('c_invisivel_real').value = estadoGlobal.totalInvisivelDetalhado.toFixed(2);
+        aoEditarAba1();
+        switchTab('tab-lucro', document.getElementById('btn-tab-lucro'));
+        mostrarToast(`Gastos invisíveis (${formatBRL(estadoGlobal.totalInvisivelDetalhado)}) salvos e somados na Aba 1!`);
+    }
+
+    function calcularLucro(sincronizarPrecosVenda = true) {
+        const ovos = parseFloat(document.getElementById('c_ovos').value) || 0;
+        const acucar = parseFloat(document.getElementById('c_acucar').value) || 0;
+        const margarina = parseFloat(document.getElementById('c_margarina').value) || 0;
+        const achocolatado = parseFloat(document.getElementById('c_achocolatado').value) || 0;
+        const farinha = parseFloat(document.getElementById('c_farinha').value) || 0;
+        const extras = parseFloat(document.getElementById('c_extras').value) || 0;
+
+        const modoInvisivel = document.getElementById('modo_invisivel').value;
+        const grpPct = document.getElementById('grupo_taxa_percentual');
+        const grpDet = document.getElementById('grupo_valor_detalhado');
+
+        const custoIngredientes = ovos + acucar + margarina + achocolatado + farinha + extras;
+        let custoInvisivelValor = 0;
+
+        if (modoInvisivel === 'detalhado') {
+            grpPct.classList.add('hidden');
+            grpDet.classList.remove('hidden');
+            custoInvisivelValor = estadoGlobal.totalInvisivelDetalhado;
+            document.getElementById('c_invisivel_real').value = custoInvisivelValor.toFixed(2);
+        } else {
+            grpPct.classList.remove('hidden');
+            grpDet.classList.add('hidden');
+            const taxa = (parseFloat(document.getElementById('c_taxa').value) || 0) / 100;
+            custoInvisivelValor = custoIngredientes * taxa;
+        }
+
+        const custoTotalMassa = custoIngredientes + custoInvisivelValor;
+
+        const qtdP = parseInt(document.getElementById('qtd_p').value) || 0;
+        const qtdM = parseInt(document.getElementById('qtd_m').value) || 0;
+        const emb = parseFloat(document.getElementById('c_emb').value) || 0;
+        const mult = parseFloat(document.getElementById('mult_lucro').value) || 1;
+
+        const equiv = qtdP + (qtdM * 1.5);
+        const box = document.getElementById('res_lucro');
+
+        if (equiv <= 0) {
+            box.innerHTML = "<strong>Informe pelo menos 1 pedaço pequeno ou médio no rendimento.</strong>";
+            estadoGlobal.lucroP = 0;
+            estadoGlobal.lucroM = 0;
+            estadoGlobal.lucroForma = 0;
+            return;
+        }
+
+        const custoMassaP = custoTotalMassa / equiv;
+        const custoMassaM = custoMassaP * 1.5;
+
+        const custoFinalP = custoMassaP + emb;
+        const custoFinalM = custoMassaM + emb;
+
+        const vendaP = custoFinalP * mult;
+        const vendaM = custoFinalM * mult;
+
+        const lucroP = vendaP - custoFinalP;
+        const lucroM = vendaM - custoFinalM;
+        const lucroForma = (lucroP * qtdP) + (lucroM * qtdM);
+
+        estadoGlobal.custoFinalP = custoFinalP;
+        estadoGlobal.custoFinalM = custoFinalM;
+        estadoGlobal.vendaSugeridaP = vendaP;
+        estadoGlobal.vendaSugeridaM = vendaM;
+        estadoGlobal.lucroP = lucroP;
+        estadoGlobal.lucroM = lucroM;
+        estadoGlobal.lucroForma = lucroForma;
+        estadoGlobal.qtdP = qtdP;
+        estadoGlobal.qtdM = qtdM;
+
+        const campoVendaP = document.getElementById('venda_preco_p');
+        const campoVendaM = document.getElementById('venda_preco_m');
+        if (sincronizarPrecosVenda || !campoVendaP.value || !campoVendaM.value) {
+            campoVendaP.value = vendaP.toFixed(2);
+            campoVendaM.value = vendaM.toFixed(2);
+        }
+
+        const textoModo = modoInvisivel === 'detalhado' ? 'Tempo + Luz + Gás da Aba 2' : 'Percentual estimado';
+
+        box.innerHTML = `
+            <div>
+                <strong>Ingredientes (Aba 1):</strong> ${formatBRL(custoIngredientes)} +
+                <strong>Gastos invisíveis (${textoModo}):</strong> ${formatBRL(custoInvisivelValor)} =
+                <strong>Custo total da forma:</strong> ${formatBRL(custoTotalMassa)}
+            </div>
+            <div class="result-grid">
+                <div class="price-card">
+                    <h3>🟫 Brownie Pequeno (${qtdP} un.)</h3>
+                    <div>Custo unitário real: <strong>${formatBRL(custoFinalP)}</strong></div>
+                    <div>Preço sugerido: <span class="price-highlight">${formatBRL(vendaP)}</span></div>
+                    <div>Lucro líquido/un.: <strong>${formatBRL(lucroP)}</strong></div>
+                </div>
+                <div class="price-card">
+                    <h3>🍫 Brownie Médio (${qtdM} un.)</h3>
+                    <div>Custo unitário real: <strong>${formatBRL(custoFinalM)}</strong></div>
+                    <div>Preço sugerido: <span class="price-highlight">${formatBRL(vendaM)}</span></div>
+                    <div>Lucro líquido/un.: <strong>${formatBRL(lucroM)}</strong></div>
+                </div>
+            </div>
+            <div style="margin-top: 12px; font-size: 1.05rem;">
+                💰 <strong>Lucro líquido estimado vendendo a forma inteira:</strong> ${formatBRL(lucroForma)}
+            </div>
+        `;
+    }
+
+    function calcularProporcao(salvar = false) {
+        const nome = document.getElementById('ing_nome').value || 'Ingrediente';
+        const preco = parseFloat(document.getElementById('ing_preco').value) || 0;
+        const total = parseFloat(document.getElementById('ing_total').value) || 0;
+        const uso = parseFloat(document.getElementById('ing_uso').value) || 0;
+        const box = document.getElementById('res_proporcao');
+
+        if (total <= 0) {
+            estadoGlobal.ultimoProporcional = 0;
+            box.innerHTML = "<strong>Informe o peso/quantidade total da embalagem maior que zero.</strong>";
+            if (salvar) salvarEstadoCompleto();
+            return;
+        }
+        const custo = (preco / total) * uso;
+        estadoGlobal.ultimoProporcional = custo;
+        box.innerHTML = `Custo proporcional de <strong>${nome}</strong> na receita: <span class="price-highlight">${formatBRL(custo)}</span>`;
+        if (salvar) salvarEstadoCompleto();
+    }
+
+    function aplicarProporcaoNaReceita() {
+        const nome = document.getElementById('ing_nome').value;
+        const mapaCampos = {
+            "Ovos": "c_ovos",
+            "Açúcar": "c_acucar",
+            "Margarina": "c_margarina",
+            "Achocolatado": "c_achocolatado",
+            "Farinha de Trigo": "c_farinha"
+        };
+        const campoId = mapaCampos[nome];
+        if (campoId) {
+            document.getElementById(campoId).value = estadoGlobal.ultimoProporcional.toFixed(2);
+            aoEditarAba1();
+            mostrarToast(`Valor de ${formatBRL(estadoGlobal.ultimoProporcional)} aplicado em ${nome} na Aba 1!`);
+        }
+    }
+
+    function renderListaCompras(sincronizarInvestimento = true) {
+        const tbody = document.getElementById('lista_compras_body');
+        tbody.innerHTML = '';
+        let totalGeral = 0;
+
+        listaCompras.forEach((entry, idx) => {
+            const sub = entry.valor * entry.qtd;
+            totalGeral += sub;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${escaparHTML(entry.item)}</td>
+                <td><input type="number" min="1" step="1" value="${entry.qtd}" style="width: 68px; padding: 6px 8px;" onchange="editarItemCompra(${idx}, 'qtd', this.value)"></td>
+                <td><input type="number" min="0" step="0.01" value="${Number(entry.valor).toFixed(2)}" style="width: 95px; padding: 6px 8px;" onchange="editarItemCompra(${idx}, 'valor', this.value)"></td>
+                <td><strong>${formatBRL(sub)}</strong></td>
+                <td><button type="button" class="btn-danger" onclick="removerItem(${idx})">Remover</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        estadoGlobal.totalCompras = totalGeral;
+        document.getElementById('total_compra_geral').textContent = formatBRL(totalGeral);
+        const campoInvest = document.getElementById('pe_investimento');
+        if (sincronizarInvestimento || !campoInvest.value) {
+            campoInvest.value = totalGeral.toFixed(2);
+        }
+        calcularMetas(false);
+        renderVendas();
+    }
+
+    function editarItemCompra(idx, campo, novoValor) {
+        if (!listaCompras[idx]) return;
+        if (campo === 'qtd') {
+            const q = parseInt(novoValor);
+            listaCompras[idx].qtd = (!isNaN(q) && q > 0) ? q : 1;
+        } else if (campo === 'valor') {
+            const v = parseFloat(novoValor);
+            listaCompras[idx].valor = (!isNaN(v) && v >= 0) ? v : 0;
+        }
+        investimentoManual = false;
+        renderListaCompras(true);
+        salvarEstadoCompleto();
+    }
+
+    function adicionarItemCompra() {
+        const item = document.getElementById('comp_item').value.trim();
+        const valor = parseFloat(document.getElementById('comp_valor').value);
+        const qtd = parseInt(document.getElementById('comp_qtd').value);
+
+        if (!item || isNaN(valor) || valor < 0 || isNaN(qtd) || qtd <= 0) {
+            mostrarToast("Preencha o nome do item, um valor válido e quantidade maior que zero.", true);
+            return;
+        }
+        listaCompras.push({ item, valor, qtd });
+        document.getElementById('comp_item').value = '';
+        document.getElementById('comp_valor').value = '';
+        document.getElementById('comp_qtd').value = '1';
+        investimentoManual = false;
+        renderListaCompras(true);
+        salvarEstadoCompleto();
+        mostrarToast(`"${item}" salvo na lista de compras!`);
+    }
+
+    function removerItem(idx) {
+        listaCompras.splice(idx, 1);
+        investimentoManual = false;
+        renderListaCompras(true);
+        salvarEstadoCompleto();
+    }
+
+    function calcularMetas(salvar = false) {
+        const invest = parseFloat(document.getElementById('pe_investimento').value) || 0;
+        const peBox = document.getElementById('res_ponto_equilibrio');
+
+        if (estadoGlobal.lucroForma <= 0) {
+            peBox.innerHTML = "<strong>Configure uma margem de lucro positiva na Aba 1 para calcular o ponto de equilíbrio.</strong>";
+        } else {
+            const formasEmpate = invest / estadoGlobal.lucroForma;
+            const unidPEmpate = estadoGlobal.lucroP > 0 ? Math.ceil(invest / estadoGlobal.lucroP) : 0;
+            const unidMEmpate = estadoGlobal.lucroM > 0 ? Math.ceil(invest / estadoGlobal.lucroM) : 0;
+
+            peBox.innerHTML = `
+                <div>Para recuperar <strong>${formatBRL(invest)}</strong>:</div>
+                <ul style="margin: 8px 0 0 18px; padding: 0;">
+                    <li>Vendendo formas mistas (padrão da Aba 1): <strong>${formasEmpate.toFixed(1)} fornadas</strong></li>
+                    <li>Ou vendendo apenas <strong>Brownie Pequeno</strong>: <strong>${unidPEmpate} unidades</strong></li>
+                    <li>Ou vendendo apenas <strong>Brownie Médio</strong>: <strong>${unidMEmpate} unidades</strong></li>
+                </ul>
+            `;
+        }
+
+        const metaMes = parseFloat(document.getElementById('meta_mensal').value) || 0;
+        const semanas = parseFloat(document.getElementById('meta_semanas').value) || 4;
+        const metaBox = document.getElementById('res_meta_mensal');
+
+        if (estadoGlobal.lucroForma <= 0 || semanas <= 0) {
+            metaBox.innerHTML = "<strong>Informe lucro positivo na Aba 1 e semanas maior que zero.</strong>";
+        } else {
+            const formasMes = Math.ceil(metaMes / estadoGlobal.lucroForma);
+            const formasSemana = (metaMes / estadoGlobal.lucroForma) / semanas;
+            const totalPMes = formasMes * estadoGlobal.qtdP;
+            const totalMMes = formasMes * estadoGlobal.qtdM;
+
+            metaBox.innerHTML = `
+                <div>Para lucrar <strong>${formatBRL(metaMes)}/mês</strong> (lucro de ${formatBRL(estadoGlobal.lucroForma)} por forma):</div>
+                <ul style="margin: 8px 0 0 18px; padding: 0;">
+                    <li>Produção mensal: <strong>${formasMes} fornadas</strong> (~<strong>${formasSemana.toFixed(1)} fornadas/semana</strong>)</li>
+                    <li>Volume aproximado no mês: <strong>${totalPMes} pequenos</strong> + <strong>${totalMMes} médios</strong></li>
+                </ul>
+            `;
+        }
+        renderVendas();
+        if (salvar) salvarEstadoCompleto();
+    }
+
+    function compararEmbalagens(salvar = false) {
+        const pa = parseFloat(document.getElementById('comp_pa').value) || 0;
+        const ga = parseFloat(document.getElementById('comp_ga').value) || 0;
+        const pb = parseFloat(document.getElementById('comp_pb').value) || 0;
+        const gb = parseFloat(document.getElementById('comp_gb').value) || 0;
+        const box = document.getElementById('res_comparador');
+
+        if (ga <= 0 || gb <= 0) {
+            box.innerHTML = "<strong>Informe pesos maiores que zero nas duas opções.</strong>";
+            if (salvar) salvarEstadoCompleto();
+            return;
+        }
+
+        const cga = pa / ga;
+        const cgb = pb / gb;
+        let veredito = "";
+
+        if (cga < cgb) {
+            const econ = ((cgb - cga) / cgb) * 100;
+            veredito = `✅ <strong>Opção A compensa mais!</strong> Economia de <strong>${econ.toFixed(1)}%</strong> por grama.`;
+        } else if (cgb < cga) {
+            const econ = ((cga - cgb) / cga) * 100;
+            veredito = `✅ <strong>Opção B compensa mais!</strong> Economia de <strong>${econ.toFixed(1)}%</strong> por grama.`;
+        } else {
+            veredito = "⚖️ <strong>Empate!</strong> Ambas têm exatamente o mesmo custo por grama.";
+        }
+
+        box.innerHTML = `
+            <div>Opção A: <strong>R$ ${(cga * 100).toFixed(2)}</strong> a cada 100g | Opção B: <strong>R$ ${(cgb * 100).toFixed(2)}</strong> a cada 100g</div>
+            <div style="margin-top: 6px; font-size: 1.02rem;">${veredito}</div>
+        `;
+        if (salvar) salvarEstadoCompleto();
+    }
+
+    function alterarContador(tamanho, delta) {
+        if (tamanho === 'P') {
+            contadorAtual.P = Math.max(0, (contadorAtual.P || 0) + delta);
+        } else if (tamanho === 'M') {
+            contadorAtual.M = Math.max(0, (contadorAtual.M || 0) + delta);
+        }
+        salvarEstadoCompleto();
+        renderVendas();
+    }
+
+    function zerarContadorAtual() {
+        if (contadorAtual.P === 0 && contadorAtual.M === 0) return;
+        pedirConfirmacao(
+            "Zerar contador atual?",
+            "Isso vai voltar a contagem de brownies pequenos e médios atuais para zero.",
+            () => {
+                contadorAtual = { P: 0, M: 0 };
+                salvarEstadoCompleto();
+                renderVendas();
+                mostrarToast("Contador atual zerado.");
+            }
+        );
+    }
+
+    function fecharDiaNoHistorico() {
+        if (contadorAtual.P === 0 && contadorAtual.M === 0) {
+            mostrarToast("Toque no + para contar pelo menos 1 brownie antes de salvar no histórico.", true);
+            return;
+        }
+        const precoP = parseFloat(document.getElementById('venda_preco_p').value) || 0;
+        const precoM = parseFloat(document.getElementById('venda_preco_m').value) || 0;
+
+        const faturamento = (contadorAtual.P * precoP) + (contadorAtual.M * precoM);
+        const custoProducao = (contadorAtual.P * estadoGlobal.custoFinalP) + (contadorAtual.M * estadoGlobal.custoFinalM);
+        const lucroLiquido = faturamento - custoProducao;
+
+        const agora = new Date();
+        const dataHora = agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+        historicoVendas.unshift({
+            desc: dataHora,
+            qtdP: contadorAtual.P,
+            qtdM: contadorAtual.M,
+            faturamento,
+            custoProducao,
+            lucroLiquido
+        });
+
+        contadorAtual = { P: 0, M: 0 };
+        salvarEstadoCompleto();
+        renderVendas();
+        mostrarToast("Fechamento salvo no histórico!");
+    }
+
+    function removerVenda(idx) {
+        historicoVendas.splice(idx, 1);
+        salvarEstadoCompleto();
+        renderVendas();
+    }
+
+    function limparVendas() {
+        if (historicoVendas.length === 0) return;
+        pedirConfirmacao(
+            "Apagar histórico salvo?",
+            "Todos os fechamentos de dias anteriores serão removidos permanentemente.",
+            () => {
+                historicoVendas = [];
+                salvarEstadoCompleto();
+                renderVendas();
+                mostrarToast("Histórico apagado.");
+            }
+        );
+    }
+
+    function restaurarPadroes() {
+        pedirConfirmacao(
+            "Restaurar valores padrão?",
+            "Isso apagará todas as suas edições salvas (receita, gastos invisíveis e lista de compras) e voltará a planilha aos valores iniciais.",
+            () => {
+                localStorage.removeItem(STORAGE_KEY_STATE);
+                localStorage.removeItem('brownie_gestao_estado_v2');
+                localStorage.removeItem('brownie_gestao_estado_v1');
+                localStorage.removeItem(STORAGE_KEY_COMPRAS);
+                localStorage.removeItem('brownie_contador_v1');
+                localStorage.removeItem('brownie_vendas_v2');
+                localStorage.removeItem(STORAGE_KEY_CLOUD);
+                localStorage.removeItem(STORAGE_KEY_FIRST_SYNC);
+                location.reload();
+            }
+        );
+    }
+
+    function renderVendas() {
+        document.getElementById('contador_p').textContent = contadorAtual.P || 0;
+        document.getElementById('contador_m').textContent = contadorAtual.M || 0;
+
+        const precoP = parseFloat(document.getElementById('venda_preco_p').value) || 0;
+        const precoM = parseFloat(document.getElementById('venda_preco_m').value) || 0;
+        const lucroUnitP = precoP - estadoGlobal.custoFinalP;
+        const lucroUnitM = precoM - estadoGlobal.custoFinalM;
+
+        document.getElementById('label_info_p').textContent = `Venda: ${formatBRL(precoP)} | Lucro/un.: ${formatBRL(lucroUnitP)}`;
+        document.getElementById('label_info_m').textContent = `Venda: ${formatBRL(precoM)} | Lucro/un.: ${formatBRL(lucroUnitM)}`;
+
+        const fatAtual = (contadorAtual.P * precoP) + (contadorAtual.M * precoM);
+        const custoAtual = (contadorAtual.P * estadoGlobal.custoFinalP) + (contadorAtual.M * estadoGlobal.custoFinalM);
+        const lucroAtual = fatAtual - custoAtual;
+
+        let histP = 0, histM = 0, histFat = 0, histCusto = 0, histLucro = 0;
+        const tbody = document.getElementById('historico_vendas_body');
+        tbody.innerHTML = '';
+
+        historicoVendas.forEach((v, idx) => {
+            histP += v.qtdP;
+            histM += v.qtdM;
+            histFat += v.faturamento;
+            histCusto += v.custoProducao;
+            histLucro += v.lucroLiquido;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${escaparHTML(v.desc)}</td>
+                <td>${v.qtdP} un.</td>
+                <td>${v.qtdM} un.</td>
+                <td>${formatBRL(v.faturamento)}</td>
+                <td>${formatBRL(v.custoProducao)}</td>
+                <td><strong style="color: #047857;">${formatBRL(v.lucroLiquido)}</strong></td>
+                <td><button type="button" class="btn-danger" onclick="removerVenda(${idx})">Excluir</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        const totalGeralP = (contadorAtual.P || 0) + histP;
+        const totalGeralM = (contadorAtual.M || 0) + histM;
+        const totalGeralFat = fatAtual + histFat;
+        const totalGeralCusto = custoAtual + histCusto;
+        const totalGeralLucro = lucroAtual + histLucro;
+
+        const resumoCards = document.getElementById('resumo_vendas_cards');
+        resumoCards.innerHTML = `
+            <div class="result-grid">
+                <div class="price-card">
+                    <h3>📦 Brownies Vendidos</h3>
+                    <div>Pequenos: <strong>${totalGeralP} un.</strong></div>
+                    <div>Médios: <strong>${totalGeralM} un.</strong></div>
+                    <div>Total geral: <strong>${totalGeralP + totalGeralM} brownies</strong></div>
+                </div>
+                <div class="price-card">
+                    <h3>💵 Entradas & Custos</h3>
+                    <div>Total vendido (Bruto): <strong>${formatBRL(totalGeralFat)}</strong></div>
+                    <div>Custo de produção: <strong>${formatBRL(totalGeralCusto)}</strong></div>
+                </div>
+                <div class="price-card" style="background: #ecfdf5;">
+                    <h3>🤑 Lucro Líquido em Tempo Real</h3>
+                    <div>Você está lucrando:</div>
+                    <div class="price-highlight">${formatBRL(totalGeralLucro)}</div>
+                </div>
+            </div>
+        `;
+
+        const invest = parseFloat(document.getElementById('pe_investimento').value) || 0;
+        const statusBox = document.getElementById('status_investimento_vendas');
+
+        if (invest > 0) {
+            const pct = Math.min(100, (totalGeralLucro / invest) * 100);
+            const falta = Math.max(0, invest - totalGeralLucro);
+            const sobraReal = Math.max(0, totalGeralLucro - invest);
+
+            if (totalGeralLucro >= invest) {
+                statusBox.innerHTML = `
+                    <div class="result-box">
+                        🎉 <strong>Investimento inicial de ${formatBRL(invest)} 100% PAGO!</strong>
+                        <div class="progress-container"><div class="progress-bar" style="width: 100%;"></div></div>
+                        <div>Lucro livre no seu bolso (já descontando a compra inicial): <strong style="font-size: 1.15rem;">${formatBRL(sobraReal)}</strong></div>
+                    </div>
+                `;
+            } else {
+                statusBox.innerHTML = `
+                    <div class="result-box">
+                        📊 <strong>Progresso para pagar o investimento inicial (${formatBRL(invest)}): ${pct.toFixed(1)}%</strong>
+                        <div class="progress-container"><div class="progress-bar" style="width: ${pct}%;"></div></div>
+                        <div>Faltam <strong>${formatBRL(falta)}</strong> de lucro líquido para empatar sua compra inicial.</div>
+                    </div>
+                `;
+            }
+        } else {
+            statusBox.innerHTML = '';
+        }
+    }
+
+    function atualizarTudo(sincronizarPrecosVenda = true) {
+        calcularLucro(sincronizarPrecosVenda);
+        calcularMetas(false);
+        renderVendas();
+    }
+
+    prepararLoginGoogle();
+
+    // Inicialização restaurando dados salvos anteriormente
+    const tinhaEstadoSalvo = carregarEstadoCompleto();
+    switchTab(abaAtivaAtual, null, false);
+    calcularGastosInvisiveis(false);
+    calcularProporcao(false);
+    renderListaCompras(!investimentoManual);
+    compararEmbalagens(false);
+    renderVendas();
+
+    if (!tinhaEstadoSalvo) {
+        salvarEstadoCompleto();
+    }
+
+    // Inicializa configuração da nuvem e sincroniza automaticamente
+    (function inicializarSincronizacaoAutomatica() {
+        const cfg = obterConfigNuvem();
+        const urlInput = document.getElementById('cloud_db_url');
+        const roomInput = document.getElementById('cloud_room_id');
+        if (urlInput && cfg.url) urlInput.value = cfg.url;
+        if (roomInput && cfg.room) roomInput.value = cfg.room;
+        atualizarVisibilidadePainelNuvem();
+
+        if (cfg.url && cfg.room) {
+            atualizarStatusNuvemUI('☁️ Sincronizando dados da nuvem...', true);
+            sincronizarDaNuvem(false);
+            setInterval(() => {
+                if (!document.hidden) sincronizarDaNuvem(false);
+            }, 15000);
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden) sincronizarDaNuvem(false);
+            });
+        }
+    })();
+</script>
+   
+<script>
+    // Registra e verifica atualizações do Service Worker em contexto seguro (HTTPS/localhost).
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+            try {
+                const registro = await navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' });
+                registro.update().catch(() => {});
+            } catch (erro) {
+                console.warn('Não foi possível registrar o modo offline:', erro);
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
